@@ -18,6 +18,7 @@ dev = ["pytest>=7.4"]
 
 [project.scripts]
 mtah = "mtah.run:main"
+plumb = "plumb.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -16,7 +16,7 @@ FRAMES     ?= 199319
 # The package lives in src/ and is not installed in the developer's environment.
 export PYTHONPATH := src
 
-.PHONY: all install install-dev reproduce validate test report clean help
+.PHONY: all install install-dev reproduce validate test report clean help ask coverage ledger
 
 all: test validate
 
@@ -28,6 +28,9 @@ help:
 	@echo "test         run the test suite (pytest -q)"
 	@echo "report       print the summary of $(REPORT)"
 	@echo "clean        remove the generated artefacts and the caches"
+	@echo "ask          plumb ask '<question>' -- the interface the project is judged on"
+	@echo "coverage     plumb coverage -- how much of the match the feed can carry"
+	@echo "ledger       plumb ledger -- every claim, with its coverage"
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -47,6 +50,16 @@ test:
 report:
 	@test -f $(REPORT) || { echo "no $(REPORT) yet; run 'make reproduce' first"; exit 1; }
 	@$(PYTHON) -c "import json; r = json.load(open('$(REPORT)')); keys = ('frames', 'graded_frames', 'possessions', 'mean_possession_s', 'median_possession_s', 'max_possession_s', 'dead_spells', 'dead_seconds', 'home_share_of_alive', 'label_counts_graded', 'absence_classes'); print(json.dumps({k: r[k] for k in keys if k in r}, indent=2, sort_keys=True))"
+
+# The interface: a question in, a supported answer or a refusal out.
+ask:
+	@$(PYTHON) -m plumb ask "$(Q)"
+
+coverage:
+	@$(PYTHON) -m plumb coverage
+
+ledger:
+	@$(PYTHON) -m plumb ledger
 
 clean:
 	rm -rf artifacts .pytest_cache

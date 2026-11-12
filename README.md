@@ -54,6 +54,49 @@ Three ideas do the work:
    is deliberately conservative, because a false dead-ball period splits a real possession in two,
    while a missed one only makes a possession slightly too long.
 
+## The interface
+
+The project is judged on a question going in and something honest coming out — a supported
+answer carrying its evidence, or a refusal naming what is missing and what would close the gap.
+
+```
+$ plumb ask "who had more possession in the second half?"
+
+  SUPPORTED  Possession share (second-half)
+  ──────────────────────────────────────────────────────────────
+    Barcelona held the ball for 56.6 % of the live frames.
+
+    Barcelona      56.6 %
+    Athletic Club  43.4 %
+    live frames    54,226 of 79,390
+
+    coverage       68.3 % of the window's graded frames are live; the ball is observed on 86.7 % of them
+    confidence     56.6 % to 69.9 % — the interval is what the unobserved frames allow
+    evidence       frames 110,808-190,197
+
+  computed by deterministic code from the raw tracking; no model wrote this claim
+```
+
+```
+$ plumb ask "which player touched the ball most"
+
+  REFUSED  per-player questions
+  ──────────────────────────────────────────────────────────────
+    the tracking has no player identities: 46 anonymous track slots for 22 players on the
+    pitch, and the organisers warn that slots swap identity as the tracker loses and
+    re-acquires people. A slot is not a person.
+
+    missing  an identity-resolved tracking export, or per-player event annotations for this match.
+    remedy   identity resolution from a corrected export (the organisers' corrected tracking), or the
+             event annotations that arrive with the Innovation Challenge dataset.
+    proxy    team-level facts: possession share, possession count and length, dead-ball time, where
+             the ball was, and the coverage of the feed itself.
+```
+
+The commands are `ask`, `why`, `close-gap`, `coverage` and `ledger`. Everything is local and
+deterministic: the router is a rule set, the renderer is a formatter over a structured answer, and
+a refusal is exact. No model writes a claim.
+
 ## Layout
 
 ```

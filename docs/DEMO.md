@@ -60,12 +60,23 @@ run.
 It is the insurance, the post-event audit trail, and the answer to "your data is broken": *here,
 replay it.* It is never presented as the demo.
 
-## What has to exist before 2 March
+## What exists, and what has to exist before 2 March
 
-- [ ] The CLI surface above, with the five beats scripted as seed queries.
-- [ ] The ledger: one row per claim, readable and checkable.
-- [ ] The claim-scoped coverage model, validated on the 10-match dataset.
-- [ ] A refusal that returns a remedy, not just a reason.
-- [ ] The recorded session, generated from the committed path.
+**Built now (Phase 1 build, the shell of the demo):**
+- [x] The CLI surface: `ask`, `why`, `close-gap`, `coverage`, `ledger`.
+- [x] A fact library of seven deterministic claims, each with its coverage and its evidence.
+- [x] Five refusal rules that name the missing evidence and the remedy.
+- [x] The coverage interval: for a proportion, the worst case if every unobserved frame belonged
+      to the other side. It is a hole in the claim, measured rather than assumed.
+- [x] The ledger: one row per claim, with the feed's coverage and the claim's status.
+
+**Still to build (the Innovation Challenge window, 26 Nov – 14 Jan):**
+- [ ] The claim-scoped coverage model, validated on the ten-match dataset. The current coverage is
+      per window; the refusal must be per claim.
+- [ ] The fact library extended beyond possession to restarts, pressing, build-up, defending,
+      transitions and chance creation.
+- [ ] A refusal whose remedy is a *collection plan* — "three of eight matches lack that zone" —
+      rather than a description of what is missing.
+- [ ] The recorded session, generated from the committed path against a pinned snapshot.
 - [ ] Four slides: the problem, the coverage, the refusal, the ledger.
 - [ ] A rehearsal on a machine that is not the presenter's, with the fallback loaded and ready.
