@@ -1,0 +1,37 @@
+# MANIFEST.sha256 — SHA-256 checksums of the licensed More Than A Hack 2027 match assets.
+#
+# THE MATCH DATA IS NOT IN THIS REPOSITORY AND MUST NEVER BE COMMITTED.
+#
+# The competition data (Metrica Sports tracking, Smart Tagging and homography for the
+# Barcelona v Athletic Club fixture) is licensed to the teams that download it. It may not
+# be redistributed, so this repository ships the *checksums* instead of the data: a
+# reviewer who has their own copy can prove it is byte-for-byte the data we used.
+#
+# The paths below are relative to the DATA DIRECTORY (the repository's ./data/), so the
+# manifest is checked from there:
+#
+#     cd data
+#     shasum -a 256 -c ../MANIFEST.sha256
+#
+# (equivalently, with this manifest copied next to the assets, `shasum -a 256 -c
+# MANIFEST.sha256` from inside the data directory).
+#
+# Expected output: one "OK" line per file, and nothing else.
+#
+# Where the files go once the bundle is unpacked:
+#
+#     data/tactical/BAR-ATH_tactical_atd.txt            the raw tracking (187 MB)
+#     data/tactical/BAR-ATH_tactical_atd.xml            teams and track slots
+#     data/tactical/BAR-ATH_tactical_homography.csv      per-frame homography
+#     data/tactical/BAR-ATH_tactical_smart_tagging.xml   set-piece windows
+#     data/broadcast/BAR-ATH_broadcast_atd.txt           the broadcast tracking
+#     data/broadcast/BAR-ATH_broadcast_atd.xml           teams and track slots
+#     data/broadcast/BAR-ATH_broadcast_homography.csv     per-frame homography
+#
+f130e350d2bfdf734b7e32f072931fccc6d015c1e837d082064875fe0a700431  tactical/BAR-ATH_tactical_atd.txt
+327e35e32e46a647389b88f883d4f9a2ab931e3e6148aef2fcf8f22b1e93c43a  tactical/BAR-ATH_tactical_atd.xml
+421c81abe16f0912dc45c2541f9bf19dd5660066397a3dcc043038a1b61c28c3  tactical/BAR-ATH_tactical_homography.csv
+0594d35e3df01b9c5002372d8615e2e8ef5379ac8f4e84c5ef7a53f4304c9019  tactical/BAR-ATH_tactical_smart_tagging.xml
+a71c1c9391e564032446be91ffbd7564205b47966060181532d80a338685e458  broadcast/BAR-ATH_broadcast_atd.txt
+53d387bcdef718c2034ee2e05c3036c7edfa3cfcd5bbe8270a43695bd252dbe9  broadcast/BAR-ATH_broadcast_atd.xml
+9ed07e7085bb0f200e171929948ae378cdba760d844bd18266c0b7caa4ba4afb  broadcast/BAR-ATH_broadcast_homography.csv

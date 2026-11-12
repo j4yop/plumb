@@ -1,0 +1,3 @@
+# The pipeline needs numpy and nothing else. pandas is only for the official scorer.
+numpy==2.2.6
+pandas==2.3.3

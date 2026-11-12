@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Council Verdict — MTAH 2027 Project Selection (Round 2)</title>
+<style>
+  :root { --bg:#0f172a; --card:#1e293b; --text:#f8fafc; --muted:#94a3b8; --border:#334155;
+          --accent:#38bdf8; --glow:rgba(56,189,248,.15); --ok:#4ade80; --warn:#fbbf24; --bad:#f87171; }
+  @media (prefers-color-scheme: light){ :root{ --bg:#f8fafc; --card:#fff; --text:#0f172a; --muted:#64748b;
+          --border:#e2e8f0; --accent:#0284c7; --glow:rgba(2,132,199,.1); --ok:#16a34a; --warn:#d97706; --bad:#dc2626; } }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;margin:0;padding:2rem 1rem}
+  .wrap{max-width:1000px;margin:0 auto}
+  header{text-align:center;margin-bottom:2.2rem;padding-bottom:1.4rem;border-bottom:1px solid var(--border)}
+  .badge{display:inline-block;padding:.25rem .75rem;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-radius:999px;background:var(--glow);color:var(--accent);border:1px solid var(--accent);margin-bottom:.7rem}
+  h1{margin:0 0 .4rem;font-size:2rem;font-weight:800;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:.92rem}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin-bottom:1.3rem;box-shadow:0 4px 6px -1px rgba(0,0,0,.1)}
+  .verdict{border-left:4px solid var(--accent)}
+  h2{margin:0 0 .8rem;font-size:1.25rem}
+  h3{margin:1.1rem 0 .4rem;font-size:1rem;color:var(--accent)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse;margin:.6rem 0;font-size:.9rem}
+  th,td{border:1px solid var(--border);padding:.45rem .55rem;text-align:left;vertical-align:top}
+  th{background:rgba(255,255,255,.03)}
+  code{background:rgba(127,127,127,.18);padding:.1rem .3rem;border-radius:4px;font-size:.88em}
+  pre{background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:8px;padding:.9rem;overflow-x:auto;font-size:.83rem;line-height:1.45}
+  .ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}.accent{color:var(--accent)}
+  ul,ol{padding-left:1.25rem;margin:.4rem 0}li{margin-bottom:.35rem}
+  .next{background:var(--glow);border:1px solid var(--accent);border-radius:8px;padding:.9rem 1rem;font-weight:600}
+  details{background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:.7rem;overflow:hidden}
+  summary{padding:.85rem 1rem;cursor:pointer;font-weight:600;background:rgba(255,255,255,.02);user-select:none}
+  summary:hover{background:var(--glow)}
+  .body{padding:.9rem 1.1rem;border-top:1px solid var(--border);font-size:.93rem}
+  .pill{display:inline-block;font-size:.7rem;padding:.1rem .45rem;border-radius:4px;border:1px solid var(--border);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .big{font-size:1.05rem;font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <span class="badge">LLM Council · Round 2 · Ranked Verdict</span>
+  <h1>Which project wins More Than A Hack 2027?</h1>
+  <div class="sub">5 advisors · 3 anonymous peer reviewers · Chairman synthesis · 12 Nov 2026, 21:30 IST</div>
+  <div class="sub" style="margin-top:.5rem"><span class="bad" style="font-weight:700">Phase 1 closes 18 Nov 2026, 04:29 IST — 5 days 7 hours</span> · Innovation Challenge 26 Nov – 14 Jan · Final pitch 2 Mar 2027, Talent Arena</div>
+</header>
+
+<div class="card verdict">
+  <h2>🎯 The pick</h2>
+  <p class="big">Build <span class="accent">ANSWERABLE</span> — a certified capability map for automatic football tracking.</p>
+  <p><em>“Not another chatbot. A system that tells you which questions this match's data can actually answer, answers them with proof, and refuses the rest — with the exact frames, the coverage behind them, and what would be needed to close the gap.”</em></p>
+  <div class="grid2">
+    <div><h3>1 · Reliability engine</h3><p>Per-frame quality model of the automatic tracking — ball visibility, ball-out-of-pitch, player-count anomalies (&gt;22 = duplicate tracks), slot churn, speed spikes, homography error. Emits a <b>coverage map</b> and a classified list of <b>unrecoverable gaps</b>. Validated by <b>in-silico error injection</b>: add known noise, measure which conclusions die.</p></div>
+    <div><h3>2 · Verified fact library</h3><p>~40 deterministic tactical facts on top of our own Phase-1 possession engine. Each fact is a <b>defensible coach-facing call</b> carrying value, evidence frames, coverage basis, confidence band, and the question it answers. <b>Aspect-agnostic</b> — possession, restarts, pressing, build-up, defending, transitions, chance creation — so it survives whatever the 26 Nov briefs name.</p></div>
+    <div><h3>3 · Router, not author</h3><p>Local intent router (a model, if any, classifies the <b>question only</b>) → fact ID → <b>deterministic renderer</b> → <b>deterministic refusal gate</b>. The model never touches a tracking row and never writes a claim. Fully local: <b>nothing leaves the machine</b>, which satisfies the Terms &amp; Conditions outright.</p></div>
+    <div><h3>Descope path</h3><p>If week 9 slips: ship <b>ANSWERABLE-minus-router</b> — reliability engine + fact library + templated front end. Still a product, still a thesis, still demoable. If the briefs name a decision-shaped aspect: re-point the fact library; the engine and refusal machinery do not change.</p></div>
+  </div>
+  <div class="next">⚡ Immediate next step: <b>Today</b> — email the organisers 5 questions: (1) does <code>D</code> start at the infringement, the whistle, or the tracking's dead flag? (2) when the ball is untracked in live play, is the truth <code>H</code>/<code>A</code> or <code>D</code>? (3) is the submission editable with the last response counted? (4) <b>what exactly is in the Phase-2 package</b> (tracking / event-data schema with team attribution? / video / audio?) (5) <b>how are 20 → 5 selected</b> — criteria, and is a written technical document part of it?</div>
+</div>
+
+<div class="card">
+  <h2>🏆 Final ranking <span class="pill">5-advisor mean · chair score after re-pricing</span></h2>
+  <table>
+    <tr><th>#</th><th>Candidate</th><th>Mean</th><th>Chair</th><th>Why</th></tr>
+    <tr><td class="big">1</td><td><b>C — ANSWERABLE</b> (reliability engine + fact library + router/refusal)</td><td>74.5</td><td class="big ok">78</td><td>One thesis, not two half-products; the only architecture that survives an unknown brief; scores on every rubric line</td></tr>
+    <tr><td>2</td><td>B — reliability layer alone</td><td class="ok">74.7</td><td>74</td><td>Highest raw mean, but standalone it is a <i>report</i>. Ships as C's spine — choosing C does not discard it</td></tr>
+    <tr><td>3</td><td>D — restarts &amp; second ball</td><td>70.4</td><td>68</td><td><span class="bad">Fatal dependency:</span> every throw-in in the audited file is team-tagged <code>N/A</code>, and its flip-condition needs Phase-2 set-piece codes <i>with team attribution</i>. Thin n, occupied literature</td></tr>
+    <tr><td>4</td><td>F — turnover geometry</td><td>66.1</td><td>67</td><td>Fallback if the trust thesis is rejected: deepest use of our own engine, validatable against event data</td></tr>
+    <tr><td>5</td><td>A — evidence-grounded chatbot</td><td>64.3</td><td>62</td><td>The 2026 genre re-run. Without C's engine it is "chatbot with citations"</td></tr>
+    <tr><td>6</td><td>E — pressing triggers</td><td>62.5</td><td>62</td><td>exPressV2 owns it; trigger attribution unvalidatable without hand labels</td></tr>
+    <tr><td>7</td><td>G — cross-camera ball recovery</td><td>56.5</td><td>54</td><td>Video may not ship; alignment is the hard part; the sponsor already sells better tracking</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h2>🔎 The three findings that changed the answer</h2>
+  <h3>1 · The “40% blind spot” headline was inflated — and an advisor caught it</h3>
+  <p>40.69% of graded frames lack a tracked ball, but the genuinely unrecoverable gaps are <b>two stoppages (~6 minutes, ~7% of the match)</b>; much of the rest is the ball off the pitch or in a keeper's hands, and the halftime “94% ball present” is a warm-up false positive. <b>Do not sell “the tracker loses the ball 40% of the time”</b> — sell the classification: which absences are benign, which are structural, and what each does to the claims you want to make. Honest numbers are more credible to a jury.</p>
+  <h3>2 · The unit of value is a question, not a metric</h3>
+  <p>The real product property is <b>which questions this automatic tracking can support at all</b>. That reframing is what makes one candidate coherent and leaves two half-built. It is the spine of ANSWERABLE.</p>
+  <h3>3 · The real gate is the selection funnel — and nobody modelled it</h3>
+  <p>Two gates decide whether we reach the jury: Phase 1's automatic ranking (top 20) and an <b>unnamed Phase 2 evaluation</b> cutting 20 → 5. All five advisors scored projects against a proxy rubric for the March jury and treated Phase 2 as mere build time. Corrections: <b>the horizon is 14 weeks, not 7</b> (26 Nov → 2 Mar), every candidate must score twice — as a live pitch <i>and</i> as a standalone re-runnable artefact — and <b>gate-legibility</b> is now an explicit rubric line.</p>
+</div>
+
+<div class="card">
+  <h2>🏗 Architecture</h2>
+<pre>raw ATD + Smart Tagging + event data + homography
+        │
+        ├──▶ RELIABILITY ENGINE ──▶ coverage map · anomaly list · classified gaps
+        │        (deterministic)      in-silico error-injection study
+        │
+        ├──▶ POSSESSION / SPELL ENGINE (our Phase 1 system) ──▶ fact + uncertainty
+        │
+        ├──▶ TACTICAL FACT LIBRARY (deterministic, ~40 facts, aspect-agnostic)
+        │        possession · restarts · pressing · build-up · defending · transitions · chance creation
+        │
+        └──▶ ROUTER (local, intent only) → FACT ID → DETERMINISTIC RENDERER → REFUSAL GATE
+                 no tracking row ever reaches the model · nothing leaves the machine</pre>
+  <p><b>Fact schema (frozen day 1):</b> <code>id · question · value · unit · evidence_frames · coverage_basis · confidence_band · decision_phrasing · dependencies</code>. Every fact must be answerable <i>as a call</i> and must declare its weakest dependency, so the refusal gate can reason about it.</p>
+  <p><b>Refusal gate:</b> if the coverage basis for a fact's supporting segment is below threshold the system does not answer — it returns what is missing, which frames, what would fix it, and the nearest answerable proxy. <b>Refusal is a feature with its own screen.</b></p>
+  <p><b>Smart Tagging is a prior, not a label:</b> 638 instances, mirror-paired attack/defence codes with opposite teams, file order grouped by code (sort by start), set-piece windows of 5 s / 35 s (windows, not instants), every throw-in tagged <code>N/A</code>. <b>Phase-2 event data validates facts; it never creates labels.</b></p>
+</div>
+
+<div class="card">
+  <h2>🎬 The 5-minute live demo</h2>
+  <ol>
+    <li><b>0:00</b> Coach asks “Where did we lose the ball most in the second half?” → the number, the frames, a confidence band, and a coverage strip under the answer.</li>
+    <li><b>0:45</b> Scrub the coverage map: halftime warm-up flagged, two stoppages flagged as <b>unrecoverable</b>, the 138.6 s blackout shown with its duration.</li>
+    <li><b>1:30</b> Ask what the data cannot support: “Which midfielder mis-positioned before the goal?” → <b>refusal</b>: no player identities; the ball is untracked for minutes around the goal. Here is exactly what is missing, here is what would fix it, here is the closest answerable proxy (team-level spatial shift).</li>
+    <li><b>2:30</b> Cross-match capability map: the same question across the 10 Phase-2 matches — answerable in 6 of 10; the coverage strip explains the other 4.</li>
+    <li><b>3:30</b> Robustness: injected noise → which conclusions survive, which die.</li>
+    <li><b>4:30</b> The meta-moment: <i>“Every number here was computed by deterministic code from the raw tracking. The language model only understood the question. Nothing left this machine.”</i></li>
+  </ol>
+</div>
+
+<div class="card">
+  <h2>🗓 Build plan — 14 weeks, 3–5 people, CPU-only</h2>
+  <table>
+    <tr><th>Weeks</th><th>Deliverable</th><th>Kill / continue check</th></tr>
+    <tr><td>1 (26 Nov – 2 Dec)</td><td>Read the briefs; <b>audit the Phase-2 package</b> (event-data dictionary, team attribution on set pieces, video/audio presence, Smart Tagging availability); ask the organisers; freeze the fact schema</td><td>no team attribution → restarts fact degrades to geometry-only</td></tr>
+    <tr><td>2–3</td><td>Reliability engine + anomaly detection + in-silico validation harness</td><td>must beat naive coverage on a held-out match</td></tr>
+    <tr><td>4–5</td><td>Fact library v1 (8–12 facts) on the Phase-1 engine; Smart Tagging cross-check</td><td>every fact shows frames + confidence</td></tr>
+    <tr><td>6–7</td><td>Fact library v2 (+ restarts, pressing, build-up), validated with Phase-2 event data</td><td>no unsupported claims</td></tr>
+    <tr><td>8–9</td><td>Router + renderer + refusal gate (deterministic, local)</td><td><b>week 9 slips → ship ANSWERABLE-minus-router</b></td></tr>
+    <tr><td>10–11</td><td>Cross-match capability map + robustness study + artefact-grade evaluation tables</td><td>re-run must reproduce</td></tr>
+    <tr><td>12</td><td>Public repo, technical document, method write-up</td><td>one-command repro from a clean clone</td></tr>
+    <tr><td>13</td><td>Demo rehearsal, offline fallback (pre-rendered evidence, captured frames), AV checks</td><td>no live-LLM dependency on stage</td></tr>
+    <tr><td><b>14 (2 Mar)</b></td><td><b>Final pitch at Talent Arena</b></td><td></td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h2>⚖️ Terms &amp; conditions compliance</h2>
+  <table>
+    <tr><th>Rule</th><th>How we comply</th><th>Evidence</th></tr>
+    <tr><td>Labels must come from an algorithm</td><td>facts, coverage and possession are deterministic code</td><td><code>src/</code> + tests</td></tr>
+    <tr><td><b>No hand labels on the provided match</b> (any purpose)</td><td>hand-label <b>other</b> matches only (Bundesliga / Metrica sample data), cited, for validation only</td><td><code>validation/</code> + data-sources section</td></tr>
+    <tr><td>No private ground truth; no human-produced data about this match</td><td>only organiser-provided automatic data (ATD, Smart Tagging, event data)</td><td>data manifest</td></tr>
+    <tr><td><b>No competition data to third-party cloud LLMs</b></td><td>fully local; the model, if used, classifies <b>intent only</b> and never receives a tracking row, frame or clip; preferred: no model at all</td><td><code>docs/privacy.md</code>, no network calls in the inference path</td></tr>
+    <tr><td>No redistribution (incl. derived data)</td><td>repo ships code + download instructions + SHA-256 manifest; no frames, clips or derived tracking published</td><td><code>.gitignore</code>, <code>MANIFEST.sha256</code></td></tr>
+    <tr><td>Repo must regenerate the submission byte-for-byte</td><td>deterministic, CPU, pinned deps, fixed seeds, one entry point, rehearsal from a clean clone</td><td><code>make reproduce</code> + CI</td></tr>
+    <tr><td>Organisers can access and inspect everything</td><td>public repo + technical document + method write-up</td><td>repo root</td></tr>
+    <tr><td>Team of 3–5</td><td>3–5 with ≥1 football/tactics person</td><td>registration</td></tr>
+    <tr><td>External data cited</td><td>external validation matches listed with source and licence</td><td>technical document</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h2>📐 Judging-criteria mapping <span class="pill">proxy rubric · 2026 weights</span></h2>
+  <table>
+    <tr><th>Criterion</th><th>W</th><th>How ANSWERABLE scores it</th></tr>
+    <tr><td><b>Originality</b></td><td>20</td><td>The differentiator is <b>the refusal and the proof</b>, not the interface. Prior art exists for pieces (AI Soccer Analyst 2026; metric-reliability papers) but no competition-grade implementation on frame-level tracking with clip anchoring, coverage-gated refusal and a cross-match capability map. Not the 2026 winner's genre.</td></tr>
+    <tr><td><b>Real club value</b></td><td>20</td><td>Answers the question every club asks and none can answer: <i>which of our numbers can we defend?</i> Every fact is phrased as a decision.</td></tr>
+    <tr><td><b>Technical solidity</b></td><td>15</td><td>Deterministic engine + in-silico error-injection validation + cross-match coverage study + one-command reproduction — measured, not asserted.</td></tr>
+    <tr><td><b>Pitch impact</b></td><td>15</td><td>Answer → the gaps → <b>the refusal</b> → cross-match capability → robustness. The refusal is the memorable moment.</td></tr>
+    <tr><td><b>Feasibility</b></td><td>15</td><td>14 weeks, CPU-only, one engine reused from Phase 1, de-scope path at week 9.</td></tr>
+    <tr><td><b>Rules safety</b></td><td>10</td><td>Local-only inference, no hand labels on the provided match, no redistribution, re-runnable.</td></tr>
+    <tr><td><b>Phase 1 synergy</b></td><td>5</td><td>The possession engine becomes fact #1; the technical document argues the reliability model — one artefact, two deadlines.</td></tr>
+    <tr><td><b>Gate-legibility</b> <span class="pill">added by peer review</span></td><td>—</td><td>Readable standalone by organisers scoring on an unpublished brief; survives a re-run.</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h2>🚨 Risk register</h2>
+  <table>
+    <tr><th>Risk</th><th>Mitigation / kill criterion</th></tr>
+    <tr><td>Phase-2 package lacks Smart Tagging codes or team attribution</td><td>26 Nov schema audit; restarts fact degrades to geometry-only; core unaffected</td></tr>
+    <tr><td>Phase-2 evaluation (20→5) is unnamed</td><td>gate-legibility: README, method, evaluation tables, one-command repro, demo recording</td></tr>
+    <tr><td>LLM misbehaves on stage</td><td>router-not-author; deterministic renderer; refusal gate; no free-text claims; offline fallback; local model only</td></tr>
+    <tr><td>“Trust layer = data engineering, not football”</td><td>every fact is a coach-facing decision; the demo opens with a football claim, not a dashboard</td></tr>
+    <tr><td>Overstated ball-absence claims</td><td>honest classification — two stoppages ≈ 6 min ≈ 7% of match; never “40% defect”</td></tr>
+    <tr><td>No football analyst on the team</td><td>team rule 3–5; recruit one; validate on external matches where hand labels are legal</td></tr>
+    <tr><td><b>Phase 1 misses the top 20</b></td><td>the project is moot — Phase 1 is this week's only priority; the possession engine is fact #1, so the work is not wasted</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h2>🕐 The next 5 days — Phase 1 only</h2>
+  <p>Phase 1 is ranked automatically; <b>no project idea can move it</b>. Slot→team provenance resolver → feature extractor → nearest-player baseline → dead-vs-live inference → temporal segmentation → byte-for-byte reproduction → <b>submit by 17 Nov 20:00 IST</b> (hard deadline 18 Nov 04:29 IST).</p>
+  <p class="warn"><b>Two implementation choices changed by this council:</b> (1) <b>do not treat ball-absence as a dead-ball signal</b> — absence must be <i>classified</i> (stoppage vs. tracking loss vs. off-pitch vs. keeper's hands) using player motion, set-piece tags and half boundaries; that is both more accurate and the first fact in the ANSWERABLE library. (2) <b>Budget the whole 6 days for the possession engine</b> — everything in the project is downstream of it.</p>
+</div>
+
+<div class="card">
+  <h2>📚 Artifacts</h2>
+  <ul>
+    <li><code>council/dossier-20261112.md</code> — verified evidence: competition structure, judging proxy rubric, data audit, prior-art map (saturated vs. open), the seven candidates</li>
+    <li><code>council/responses-20261112.md</code> — all five advisor scores, objections and flip conditions</li>
+    <li><code>council/verdict-20261112.md</code> — Chairman verdict + full project spec, demo script, build plan, T&amp;C checklist, risk register</li>
+    <li><code>council/report-20261112-v2.html</code> — this report</li>
+  </ul>
+  <p class="sub">Primary sources: metrica-sports.com blog (2027 structure; 2026 finalist write-up) · landing.mobileworldcapital.com/more-than-a-hack-2027 (stage briefs) · mobileworldcapital.com press release · github.com/metrica-sports/more-than-a-hack-2027 (rules, submission, evaluation, issues) · competitor public repos (Synx, mtah2027-possession, football-analytics) · prior art: EFPI, SoccerCPD, shape graphs, exPressV2, xT/EPV, GenTac, MCPS, ASA throw-in analysis, Swartz causal throw-ins, AI Soccer Analyst (2026), tracking-reliability literature.</p>
+</div>
+</div>
+</body>
+</html>

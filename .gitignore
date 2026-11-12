@@ -1,0 +1,40 @@
+# The licensed match data must NEVER be committed.
+#
+# The More Than A Hack 2027 competition data is licensed to the teams that downloaded it
+# and may not be redistributed. Only the checksums travel with the repository: see
+# MANIFEST.sha256. A reviewer verifies their own download with
+#
+#     cd data && shasum -a 256 -c ../MANIFEST.sha256
+#
+data/*
+!data/README.md
+
+# Generated outputs: the submission, the run report and the debug trace.
+artifacts/
+reports/
+scoreboard*/
+*scoreboard*.csv
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.env
+
+# Tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*.swp

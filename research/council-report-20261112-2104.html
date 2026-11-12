@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Council Deliberation — More Than A Hack 2027 Project Selection</title>
+<style>
+  :root {
+    --bg: #0f172a; --card-bg: #1e293b; --text: #f8fafc; --text-muted: #94a3b8;
+    --border: #334155; --accent: #38bdf8; --accent-glow: rgba(56, 189, 248, 0.15);
+    --success: #4ade80; --warning: #fbbf24; --danger: #f87171;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f8fafc; --card-bg: #ffffff; --text: #0f172a; --text-muted: #64748b;
+      --border: #e2e8f0; --accent: #0284c7; --accent-glow: rgba(2, 132, 199, 0.1);
+      --success: #16a34a; --warning: #d97706; --danger: #dc2626;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+         background-color: var(--bg); color: var(--text); line-height: 1.6; margin: 0; padding: 2rem 1rem; }
+  .container { max-width: 980px; margin: 0 auto; }
+  .header { text-align: center; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+  .badge { display: inline-block; padding: 0.25rem 0.75rem; font-size: 0.8rem; font-weight: 600;
+           text-transform: uppercase; letter-spacing: 0.05em; border-radius: 9999px;
+           background: var(--accent-glow); color: var(--accent); border: 1px solid var(--accent); margin-bottom: 0.75rem; }
+  h1 { margin: 0 0 0.5rem 0; font-size: 2rem; font-weight: 700; }
+  .timestamp { color: var(--text-muted); font-size: 0.9rem; }
+  .card { background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+          padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+  .card-verdict { border-left: 4px solid var(--accent); }
+  h2 { margin-top: 0; font-size: 1.3rem; display: flex; align-items: center; gap: 0.5rem; }
+  h3 { margin: 0 0 0.5rem 0; font-size: 1.05rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+  details { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.75rem; overflow: hidden; }
+  summary { padding: 1rem; cursor: pointer; font-weight: 600; background: rgba(255,255,255,0.02); user-select: none; }
+  summary:hover { background: var(--accent-glow); }
+  .details-body { padding: 1rem 1.25rem; border-top: 1px solid var(--border); font-size: 0.95rem; }
+  ul { padding-left: 1.25rem; margin: 0.5rem 0; }
+  li { margin-bottom: 0.4rem; }
+  .next-action { background: var(--accent-glow); border: 1px solid var(--accent); border-radius: 8px; padding: 1rem; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.92rem; }
+  th, td { border: 1px solid var(--border); padding: 0.5rem 0.6rem; text-align: left; vertical-align: top; }
+  th { background: rgba(255,255,255,0.03); }
+  .tag { font-size: 0.72rem; padding: 0.1rem 0.45rem; border-radius: 4px; border: 1px solid var(--border);
+         color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .win { color: var(--success); } .warn { color: var(--warning); } .bad { color: var(--danger); }
+  .clock { font-weight: 700; color: var(--danger); }
+  a { color: var(--accent); }
+  code { background: rgba(127,127,127,0.18); padding: 0.1rem 0.3rem; border-radius: 4px; font-size: 0.88em; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <span class="badge">LLM Council Deliberation</span>
+    <h1>Which project wins More Than A Hack 2027?</h1>
+    <div class="timestamp">Conducted 12 Nov 2026, 21:04 IST &nbsp;·&nbsp; 5 Advisors &nbsp;·&nbsp; 3 Independent Peer Reviewers &nbsp;·&nbsp; Chairman Synthesis</div>
+    <div class="timestamp"><span class="clock">Phase 1 closes 18 Nov 2026, 04:29 IST — 5 days 7 hours remaining at deliberation</span></div>
+  </div>
+
+  <div class="card card-verdict">
+    <h2>🎯 Chairman's Verdict</h2>
+    <p><strong>Next 5 days: 100 % possession/control inference engine. Nothing else.</strong> The PDF idea is a <em>Phase 2</em> deliverable, judged on 2 March 2027 — not a Phase 1 lever, because Phase 1 is ranked automatically on <code>spellF1</code> and admits no project idea at all.</p>
+    <p><strong>Project topic to commit: #8 Formation Change Detector</strong>, reframed and renamed so it is <em>not</em> a formation classifier — <strong>“Event-corroborated shape-change &amp; control intelligence”</strong>. <strong>#7 Formation Recognition</strong> is the engine that makes it work; <strong>#12 Automatic Highlight Generator</strong> is the fallback if the 26 Nov open briefs point at moments/highlights.</p>
+    <p><strong>Why this one:</strong> it is the only listed idea that is <em>impossible without the rare tracking data</em> — the competition’s entire premise; shape is <em>ball-independent</em>, so it survives the 40.69 % of graded frames where the ball is missing; it has a real evaluation story (continuous descriptors validated on other matches + organiser-provided Smart Tagging — never hand labels on this match); and its live demo is verifiable by a jury simply watching the video.</p>
+    <p><strong>Why not #12 (the other main contender):</strong> Metrica already supplies the event layer — their own blog advertises “Automatic event data, generated with Smart Tagging. The events of the match, already tagged” — and sells tactical tooling to clubs. Pitching a highlight generator at the sponsor’s own event reads as re-implementing what the sponsor already hands you — and a jury’s fastest word for that is <em>commodity</em>.</p>
+    <div class="next-action">
+      ⚡ Immediate Next Step: <strong>Today</strong> — email <code>hackathon.talentarena@mobileworldcapital.com</code> with three questions that decide ~40 % of your score: (a) does <code>D</code> start at the infringement, the whistle, or the corrected tracking’s dead-ball flag (open issue #31, still unanswered)? (b) on a frame where the ball is not tracked <em>during live play</em>, is the truth <code>H</code>/<code>A</code> (the spell continues) or <code>D</code>? (c) is the submission editable with the <em>last</em> response counted? Attach your proposed label semantics in one paragraph so they can approve or correct it.
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h2 class="win">✓ Where the Council Agrees</h2>
+      <ul>
+        <li><strong>The next 5 days are 100 % Phase 1.</strong> All five advisors, unprompted, put essentially all pre-17-Nov effort into the possession pipeline. None argued for building a project feature now.</li>
+        <li><strong>Do not commit the project topic today.</strong> Phase 2’s 10-match tracking+event dataset does not exist until 26 Nov, and the briefs are <em>open design challenges</em> — not yet published.</li>
+        <li><strong>Phase 1 is a gate, not a prize.</strong> Binary: top 20 of 4,000+. Project choice only pays if you pass it.</li>
+        <li><strong>The reusable IP is the estimator, not the CSV.</strong> The possession/control inference engine is the asset that survives into Phase 2 and that your repo and technical document are judged on.</li>
+        <li><strong>Most of the PDF list is structurally incompatible.</strong> 10 of 13 items need player identities (unavailable), many matches (10 is a demo reel, not a training set), market data, or calibrated history this competition does not provide.</li>
+        <li><strong>The judges discount generic football analytics instantly.</strong> A Barça Innovation Hub / Metrica jury will see through “comeback probability”, “expected points” and “schedule difficulty” in one breath.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2 class="warn">⚡ Critical Clashes &amp; Trade-offs</h2>
+      <ul>
+        <li><strong>#8 vs #12.</strong> A and C back #12 (tactical-moment engine over the 638 Smart Tagging instances); B, D and E back #7/#8 with a continuous-descriptor, event-corroborated design. <em>For #12:</em> its hard dependency arrives only on 26 Nov so it cannot distract from Phase 1, and Smart Tagging is free supervision for “what counts as a moment”. <em>Against:</em> it is the sponsor’s own product category, and “moment” is subjective — exactly where gimmicks live.</li>
+        <li><strong>“Ball absent → D” vs “ball absent → X”.</strong> The advisors contradict each other and both are wrong: B’s version is arithmetically dead (≈67 k ball-absent frames vs only 2,934 graded <code>D</code> frames in H1), D’s version is an unverified bet on 40 % of the score. The resolution is a <em>third</em> behaviour — infer deadness from evidence (absence + no player near the last ball position + low player speed + set-piece tag + known half boundaries) and only then label <code>D</code>.</li>
+        <li><strong>Ship early vs perfect-late.</strong> SUBMISSION.md states one response per team, editable, <em>last response before the deadline is the one scored</em> — so a schema-correct baseline submitted ~14 Nov is free optionality, not a wasted day.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="bad">⚠️ Blind Spots &amp; Hidden Risks Uncovered by Peer Review</h2>
+    <ul>
+      <li><strong>The <code>X</code>-policy on ball-absent frames is the single highest-leverage unknown in the project</strong> — it governs 40.69 % of graded frames. It must be certified with the organisers, not guessed. Five advisors invented five confident, mutually contradictory policies.</li>
+      <li><strong>Resubmission semantics must be confirmed before the strategy is fixed.</strong> If only one submission counts, an early probe CSV could destroy the entry; if the last response counts, probing is free.</li>
+      <li><strong>The public repo cannot contain the licensed ATD</strong>, so “regenerates byte-for-byte” needs a documented, checksummed data-acquisition step (download + SHA-256 manifest) — unplanned by all five advisors.</li>
+      <li><strong>A formation demo on one match is ~5 events; two false positives kills it.</strong> The demo only becomes credible on 10 matches (≈40 events) — another reason the project cannot be built before 26 Nov.</li>
+      <li><strong>Swap-in vs tactical reshuffle is unresolvable without event data:</strong> a vacated slot plus an arriving substitute looks exactly like a reshuffle. The fix is to <em>require event corroboration</em> before declaring a change — which only Phase 2 makes possible.</li>
+      <li><strong>Your tracker slots are a gift, not a bug.</strong> Track 44 never observed, Track 22 on 44 frames — so per-slot artefacts are provably tracker artefacts, not signal. Use that when a coefficient looks surprising.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>🗓️ The actual calendar (verified)</h2>
+    <table>
+      <tr><th>Stage</th><th>Window</th><th>What it is</th></tr>
+      <tr><td>Registration</td><td>1 Oct – 10 Nov 2026</td><td>closed</td></tr>
+      <tr><td><strong>Initial Challenge (Phase 1)</strong></td><td>20 Oct – <strong>17 Nov 2026</strong> (23:59 CET = <strong>18 Nov 04:29 IST</strong>)</td><td>label every frame with team possession. <strong>Ranked automatically, no jury. Top 20 advance.</strong></td></tr>
+      <tr><td><strong>Innovation Challenge (Phase 2)</strong></td><td><strong>26 Nov 2026 – 14 Jan 2027</strong></td><td>top 20 get <strong>10 professional matches with tracking AND event data</strong> + <strong>open design challenges</strong>. “This is where you turn an idea into something that works.”</td></tr>
+      <tr><td><strong>Final pitch</strong></td><td><strong>2 March 2027</strong></td><td>on site at Talent Arena, Barcelona. <strong>5 teams, professional jury.</strong></td></tr>
+    </table>
+    <p class="timestamp">Prizes: travel + accommodation to Barcelona · official FC Barcelona 26/27 shirts · Barça Innovation Hub merchandise · exclusive FC Barcelona experience. Teams of 3–5 (fewer than 3 are ineligible for later stages).</p>
+  </div>
+
+  <div class="card">
+    <h2>📐 Why the other 12 ideas lose</h2>
+    <table>
+      <tr><th>Idea</th><th>Verdict against the actual data</th></tr>
+      <tr><td>1 Match Outcome Predictor</td><td class="bad">1 match. Outcome is not the question, and the frame-level possession label is.</td></tr>
+      <tr><td>2 Player Value Analyzer</td><td class="bad">No player identities in the ATD, no market values, no transfer history.</td></tr>
+      <tr><td>3 AI Scout</td><td class="bad">LLM narration over a shallow dataset — and cloud LLMs are barred from competition data.</td></tr>
+      <tr><td>4 Comeback Probability</td><td class="bad">Needs calibrated historical states; 10 matches is n ≈ 5 of anything.</td></tr>
+      <tr><td>5 Expected Points Tracker</td><td class="bad">Needs xG and many matches. A spreadsheet, and a commodity.</td></tr>
+      <tr><td>6 Player Similarity Engine</td><td class="bad">Structurally dead: there are no players, only 46 slots.</td></tr>
+      <tr><td>7 Formation Recognition</td><td class="win">Keep — as the <em>engine</em> for #8, continuous descriptors with names only as read-out.</td></tr>
+      <tr><td><strong>8 Formation Change Detector</strong></td><td class="win"><strong>PICK — reframed as event-corroborated shape-change &amp; control intelligence.</strong></td></tr>
+      <tr><td>9 Red Card Impact Model</td><td class="bad">10 matches will not contain enough red cards to say anything.</td></tr>
+      <tr><td>10 Substitution Impact Analyzer</td><td class="bad">Needs substitution events (Phase 2) and causal care; possible only with the 10-match set.</td></tr>
+      <tr><td>11 Home Advantage Calculator</td><td class="bad">Needs home/away pairs at scale; would embarrass you.</td></tr>
+      <tr><td>12 Automatic Highlight Generator</td><td class="warn">Fallback only. <strong>Metrica already supplies the event layer</strong> (“the events of the match, already tagged”) — pitching a highlight generator at the sponsor’s event reads as re-implementing what they hand you.</td></tr>
+      <tr><td>13 Schedule Difficulty Calculator</td><td class="bad">Spreadsheet; uses none of the data the competition gives you.</td></tr>
+    </table>
+  </div>
+
+  <h2>🏛️ Advisor Deliberations</h2>
+
+  <details>
+    <summary>Advisor A — The Contrarian / Red Team <span class="tag">hypothesis breaker</span></summary>
+    <div class="details-body">
+      <ol>
+        <li><strong>Validation void (kill shot).</strong> A formation detector has <em>no ground truth anywhere</em>. The bundle contains no formation labels, and the rules ban hand-labelling this match “for any purpose” — including validation. The 5-minute public truth that makes possession measurable is separately banned from tuning. Possession has a floor (0.2433) and a leaderboard; “formation change” has neither. The first jury question is “how do you know 4-2-3-1 became 4-3-3?” and the honest answer is “we thresholded a shape metric” — a heuristic demo, not a system.</li>
+        <li><strong>The dependency runs backwards.</strong> Formation does not extend the possession engine; possession would feed <em>it</em>. Formation work buys <strong>zero</strong> Phase 1 score, and Phase 1 is the only thing that ranks you. Worse, the silent sink most teams underestimate: organisers re-run the repo byte-for-byte, so pin CPU, seeds and lockfiles — one GPU-nondeterminism bug can fail a correct solution on 17 Nov.</li>
+        <li><strong>Identity-free guts the demo.</strong> 46 slots used erratically (Track 44 never observed; Track 22 on 44 frames), no IDs → you can compute <em>team shape</em> and nothing per-player. “Change detection” degenerates into thresholded noise on one wide-angle camera with rectilinear homography (depth error grows away from centre). Set pieces are 5 s/35 s windows, so the event timeline is ±seconds fuzzy before you even start.</li>
+        <li><strong>Ten matches is a demo reel, not a training set.</strong> No list item can be an ML model. Pick a <em>system</em>, and prefer one whose load-bearing input only arrives on 26 Nov — event data with exact timestamps — which is precisely what fixes the fuzzy-window problem.</li>
+        <li><strong>Jury gimmick.</strong> A formation chart is a commodity view; Metrica is a club-facing analytics vendor, so a formation pitch may read as re-implementing the sponsor’s product. Prizes are travel, shirts and experience — reputational, not commercial.</li>
+      </ol>
+      <p><strong>Recommendation:</strong> #12 rebuilt as an identity-free tactical-context engine; keep formation as one panel inside it. <strong>Do not commit the project today</strong> — only possession commits now; choose the topic on 26 Nov with the data in hand.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Advisor B — The First Principles Thinker <span class="tag">reframes the gate</span></summary>
+    <div class="details-body">
+      <p>Phase 1 is a <strong>filter, not a prize</strong> — automatic scoring, no jury, one binary outcome (top 20 of 4,000+). And the project <em>cannot</em> be built before 26 Nov: the 10-match tracking+event dataset doesn’t exist until then. So pre-17-Nov idea work has no data behind it. <strong>Spend 6 days ~85 % on the possession pipeline, 0 % on the idea.</strong></p>
+      <p><strong>Attacking the hypothesis:</strong> the synergy claim is mostly false. Formation isn’t a possession phenomenon — it needs the same ATD, not your spells. The one real bridge is Metrica’s <em>own</em> labels: 638 tagged instances with mirror-paired codes — a provided, non-hand-made validation set for “does the shape index separate BUILD UP from PROGRESSION?”.</p>
+      <p>Identity-free is a non-issue — 46 persistent slots <em>are</em> pseudo-identities. Good for feasibility; but it proves the project doesn’t need Phase 1’s asset.</p>
+      <p><strong>What breaks is legitimacy, not feasibility.</strong> Analysts will demand ground truth for “4-3-3” that doesn’t exist. A hand-made taxonomy is the gimmick. Fix: continuous descriptors (width, line height, compactness, centroid, stretch, PPDA proxy) + change-point detection; formation names only as an overlay; attribute each change to exogenous events (subs, cards, phase) so output is <em>detected and explained</em>.</p>
+      <p><strong>Unimpressive:</strong> a formation confusion matrix; “unknown” on 4-1-4-1; LLM narration (also rule-barred through cloud).</p>
+      <p><strong>Hard constraint:</strong> Phase 2 guarantees only tracking + events → the project must be a function of those alone. That kills Highlights (needs video), Comeback Probability (needs calibrated history), Sub/Red Card Impact (10 matches, n ≈ 5).</p>
+      <p><strong>Phase 1 recipe:</strong> nearest-slot-to-ball; sustained ball-absent runs → D (the 138.6 s / 221.5 s gaps are stoppages) but never D at halftime’s 94 % ball-present warm-up; min spell ≈ 2 s; merge same-team gaps; <strong>abstain to X when unsure</strong> (free inside a spell, costly across hand-overs). Resolve slot→team provenance in hour one — it swings difficulty an order of magnitude. Budget a full day for byte-for-byte reproduction.</p>
+      <p><strong>Verdict:</strong> #8 with #7 as read-out, reframed as live shape+possession intelligence; build the label-free engine 17–26 Nov with a batch harness so 10 matches ingest in hours on 26 Nov.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Advisor C — The Expansionist / Strategist <span class="tag">peer-review winner</span></summary>
+    <div class="details-body">
+      <p><strong>Verdict: #12 rebuilt as an automatic tactical-moment engine</strong>, with possession spells as its backbone.</p>
+      <p>Formation breaks on identity and arithmetic: identity-free geometry gives <em>shape</em>, not <em>roles</em>. “Formation change” is a role-level event (the 8 advancing, the striker dropping); with 46 anonymous slots — Track 44 never observed, Track 22 seen on 44 frames — role assignment is unsolvable. The deliverable degenerates into a line-chart of 11 dots, a broadcast commodity. Worse, it is an n=1 claim: one match, one opponent. Nothing generalises until 26 Nov, so it must be rebuilt in January anyway — it does <strong>not</strong> compound with Phase 1, it competes for the same hours.</p>
+      <p><strong>The binding risk is Phase 1, and it is not what the list implies.</strong> The ball is missing on 40.69 % of graded frames, so you never “detect” possession — you <em>infer</em> it from geometry (cluster the 46 slots into two persistent spatial clusters, recover the 24/22 side split, then nearest-player/cone containment) and carry calibrated uncertainty. <strong>That estimator is the reusable IP, not the CSV.</strong> Treat it as a library. Traps to hard-code: halftime (ball present 94.07 %, ~12.5 players), 2,934 graded D frames, every throw-in N/A, 34 % of broadcast frames non-play (use tactical only). Under one-to-one temporal-IoU matching, over-segmentation is punished twice — merge aggressively, never emit X near a handover, bias boundaries a few frames early. Tune on hand-labels of <em>other</em> matches (legal); the public 5-minute truth is poisoned.</p>
+      <p><strong>Why #12 wins:</strong> the 638 Smart Tagging instances are free supervision for “what counts as a moment” — the asset nobody else will mine. Every clip traceable to a spell, every label auditable, organisers can re-run the repo. Also the umbrella: substitutions, red-card aftermaths and comeback arcs ship as downstream add-ons.</p>
+      <p><strong>Higher-order:</strong> you exit with a licensed-clean, paper-shaped corpus — a 199k-frame possession benchmark plus tactical-moment supervision — and Barça’s obvious future partner. The jury calls gimmick what it always calls gimmick: a reel without provenance, a formation chart without generality, a probability model without calibration. Ship the ones with a baseline.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Advisor D — The Outsider / Domain Skeptic <span class="tag">framing breaker</span></summary>
+    <div class="details-body">
+      <p><strong>Verdict:</strong> the topic is defensible; the framing is wrong. A Formation Change Detector is not a project layered <em>on top of</em> a possession pipeline — it <strong>is</strong> the pipeline’s first stage. So 100 % of the next 6 days goes to the possession engine, and the March artefact starts 26 Nov.</p>
+      <p><strong>What breaks:</strong> the provided match cannot validate a formation detector — hand labels on that match are forbidden, so your only full-match supervision is Smart Tagging’s 638 instances with 5 s/35 s windows, and you have <strong>no substitution events until 26 Nov</strong>. Without events, a vacated slot plus an arriving substitute is indistinguishable from a tactical reshuffle — the detector’s core false-positive source, and a coach will kill the demo on it. Also: 24 slots for a side with an 18-man matchday squad, Track 44 never observed, ~12.5 warm-up players at halftime — you must infer the on-pitch set before you can count lines. And the ball is missing on 40.69 % of graded frames, so every ball-relative metric (line height vs. ball, compactness, press trigger) dies on two of every five frames. Only shape geometry survives, and shape is phase-conditional: “4-3-3” is a build-up shape or a defending shape, and phase labels come from those same 638 coarse codes.</p>
+      <p><strong>What a Barça jury discounts:</strong> a formation heatmap on one match is what a club already produces from staff video — N=1, replication. “Comeback probability” and “expected points” are commodities; “schedule difficulty” would embarrass you. Identity-based ideas (Player Value, AI Scout, Similarity, Substitution Impact) are structurally dead — no identities in tactical ATD; Phase 2 promises tracking + events, not identities.</p>
+      <p><strong>Where effort goes:</strong> now → 17 Nov, pipeline only but built geometry-first — slot→team assignment, team-shape features, phase segmentation from the mirrored codes, then spells. One artefact serves both deadlines. Exploit the label asymmetry: X is forward-filled so abstaining inside a possession is nearly free, while a wrong D breaks the spell. 26 Nov → 14 Jan: build the project on 10 matches, using the hand-label escape hatch (labels on any match <em>other than</em> the provided one are allowed) to gold-standard formations — converting “n=1” into a measured claim.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Advisor E — The Executor / Pragmatic Engineer <span class="tag">execution reality</span></summary>
+    <div class="details-body">
+      <p><strong>Verdict:</strong> keep #7 + #8, throw away the sequencing. The pick survives on execution grounds — but the plan for it is backwards.</p>
+      <p><strong>Why the pick holds:</strong> it is the only listed idea that needs <em>nothing</em> but the ATD + homography. #4/#12 require reading the scoreboard overlay, which means local vision (competition data can’t go to third-party cloud LLMs); #2/#3/#6/#9/#10 need identities and events the Phase-1 bundle lacks, and n=1 cannot support them; #13/#11/#5 are spreadsheets. And shape is <strong>ball-independent</strong> — the 40.7 % missing-ball rate that will wreck any event-detection idea doesn’t touch formation at all.</p>
+      <p><strong>Where effort goes:</strong> now–17 Nov (5 days): <strong>100 % possession pipeline, zero formation code.</strong> Three deliverables: CSV; byte-reproducible repo (lockfile, sorted iteration, fixed float format — budget a full day, most teams blow this); 2-page technical doc. One parallel background task only: pull 2–3 public tracking matches with known formations (Metrica sample data) as a validation set — legal, since hand labels are banned only on <em>this</em> match.</p>
+      <p>17–26 Nov gap: de-risk, don’t build. Parse those external matches, hand-label formations (allowed elsewhere), build the line/role clusterer. Go/no-go on 26 Nov: if line assignment can’t hit ~85 %, pivot. 26 Nov–14 Jan: build on the 10 pro matches; detect changes with minimum-dwell-time plus per-player displacement thresholds; ship a demo the jury can verify by watching video.</p>
+      <p><strong>What breaks in the hypothesis:</strong> (1) “identity-free” covers teams, not roles — assigning 22 on-pitch slots to lines <em>is</em> the project, and it’s what a Barça analyst attacks: “4-2-3-1 or 4-3-3? which midfielder is the pivot?” Geometry alone cannot answer. (2) “Visually demonstrable live” cuts both ways: ~5 changes in one match means two false positives kills the demo. Forty events across 10 matches is the real demo. (3) Exploit Smart Tagging — 638 paired-mirror intervals are coarse team-possession supervision; get organiser sign-off in writing first.</p>
+      <p><strong>Rollback:</strong> keep formation a module, not the spine. #12 remains the January fallback — it rides the event engine Phase 1 already builds.</p>
+    </div>
+  </details>
+
+  <h2>🔍 Anonymous Peer Review</h2>
+
+  <details>
+    <summary>Strongest argument → <span class="tag">Response C</span></summary>
+    <div class="details-body">
+      <p><strong>Response C is strongest.</strong> Its core claim: with the ball missing on 40.69 % of graded frames, possession is never <em>detected</em> but <em>inferred</em> from slot geometry with calibrated uncertainty — and that estimator, not the CSV, is the reusable IP, so build a library and choose the topic on 26 Nov. It alone ties audited facts to scoring math: under temporal-IoU 0.3–0.7, over-segmentation is punished twice (merge aggressively; never emit X near a handover); X forward-fills only within a half, so abstention inside a spell is nearly free; and it enumerates traps — halftime 94.07 % ball-present / ~12.5 warm-up players, 2,934 D frames.</p>
+      <p>The rivals: A’s “no formation ground truth” is true but only disqualifying — no mechanism, no winner. B’s “Phase 1 is a filter” is right, yet its verdict (commit #8) contradicts it, and its 638-instance validation set ignores 5 s/35 s coarseness. D’s substitute-vs-reshuffle ambiguity is the sharpest single attack on formation, but D never says what to build or how to score. E’s ball-independent shape is real, but E’s own findings (roles unresolvable, ~5 changes/match) sink its verdict; E lands on C’s plan.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Fatal blind spot → <span class="tag">Response D</span> — the X-policy</summary>
+    <div class="details-body">
+      <p>Its rule <em>“emit X when the ball vanishes”</em> assumes X is a free, safe abstain class. Nothing in the audit defines X, its forward-fill behaviour, or how the grader scores it — and that one choice governs <strong>40.69 % of graded frames</strong>. If the truth there is H/A (the spell continues through occlusion) or D, your X-predictions are false positives and H/A recall collapses; mean F1 lands at or below the 0.2433 floor and you are out of the top 20 of 4,000+. Response B asserts the <em>opposite</em> rule (“sustained ball-absent runs → D”) — the two contradict, which proves nobody has settled it. B’s version is already arithmetically dead: 40.69 % missing ≈ 67 k frames vs only 2,934 graded D frames in H1, so ball-absent ≠ D.</p>
+      <p><strong>Cheapest retirement (½ day, before any modelling):</strong> (1) ask organisers/Metrica for the D/X label schema; (2) align the 638 Smart Tagging windows to the ball-visibility timeline and read halftime (ball present 94.07 %, no play) as free probes; (3) submit two cheap probe CSVs (X-on-absent vs H/A-continued) and compare leaderboard F1.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Missing consideration → <span class="tag">the grader’s labelling contract</span></summary>
+    <div class="details-body">
+      <p>The metric is not “detect possession”; it is “reproduce the organisers’ label function” (spell matching, temporal IoU 0.3–0.7). Five advisors each invented a confident policy — B: ball-absent→D; D: ball-vanishes→X; C: never emit X near a handover — and they contradict each other, so at least two are wrong. A swapped H/A or inverted D/X doesn’t cost a few points; it collapses F1, you miss the top 20, and every project argument becomes moot.</p>
+      <p><strong>Same blind spot:</strong> a public repo cannot ship the licensed ATD, so byte-for-byte regeneration needs a checksummed download path — unplanned by all five.</p>
+      <p><strong>Why it dominates:</strong> Phase 1 is binary and gates everything after it. Project choice only pays if you pass.</p>
+      <p><strong>Council must decide:</strong> (1) owner and deadline for certifying the contract; (2) a schema-correct baseline submitted ~14 Nov as insurance; (3) the project only afterwards, under the rule that it must survive merely mediocre possessions.</p>
+      <p style="color:var(--text-muted);font-size:0.88em"><strong>Chairman’s note:</strong> the reviewer is right about the <em>consequence</em> and partly wrong about the <em>source</em>. The file contract (header, row count, frame order, label alphabet, X scoring, forward-fill, tie-breaks, graded windows, resubmission semantics) is fully documented in the repo — I read it. What is genuinely undocumented is the <strong>dead-ball onset rule</strong>: does D start at the infringement, the whistle, or the corrected tracking’s dead flag? That is open issue #31, still unanswered. So the certification task is narrower and cheaper than feared — but it is now, not later.</p>
+    </div>
+  </details>
+
+  <h2>🛠️ Concrete Action Plan</h2>
+  <div class="card">
+    <ol>
+      <li><strong>Today (12 Nov) — certify the contract.</strong> Email <code>hackathon.talentarena@mobileworldcapital.com</code> with the three questions in the verdict card, plus your proposed label semantics in one paragraph. Mark it as time-sensitive: the answer changes 40 % of your score.</li>
+      <li><strong>Today — repo skeleton + reproducibility spine.</strong> Pin numpy/pandas, fix seeds, one entry point, and write data acquisition as <em>download + SHA-256 manifest</em> (the licensed ATD must not be committed).</li>
+      <li><strong>13 Nov — library, not script.</strong> Slot→team provenance resolver + ball/player feature extractor + nearest-player baseline, emitting a 199,319-row CSV from one command.</li>
+      <li><strong>14 Nov — submit that baseline as insurance</strong> (one response per team, editable, last response counted). Free optionality.</li>
+      <li><strong>14–16 Nov — the two decisions that move the score.</strong> (a) <em>Dead vs live inference</em>: absence + proximity to the last known ball position + player speed + set-piece tags + known half boundaries; force D for halftime and the 2,934-frame pre-kickoff block. (b) <em>Temporal segmentation</em>: one-to-one spell construction, minimum duration, aggressive same-team merging, X only where genuinely uncertain and never adjacent to a hand-over.</li>
+      <li><strong>16 Nov — byte-for-byte rehearsal</strong> from a clean clone; final CSV + technical document.</li>
+      <li><strong>17 Nov 20:00 IST — submit.</strong> Hard deadline 18 Nov 04:29 IST.</li>
+      <li><strong>18–25 Nov — de-risk, don’t build.</strong> Pull 2–3 public Metrica tracking matches with known formations; hand-label <em>those</em> (explicitly allowed — the ban is only on the provided match); build the line/role clusterer. <strong>Go/no-go on 26 Nov</strong>: if line assignment can’t reach ~85 %, pivot to #12.</li>
+      <li><strong>26 Nov – 14 Jan — build the project</strong> on the 10 professional matches with tracking + event data, per the open design challenges.</li>
+      <li><strong>Jan – 2 Mar — polish for the jury.</strong> Live demo, reproducible repo, technical document.</li>
+    </ol>
+  </div>
+
+  <h2>📚 Primary sources</h2>
+  <div class="card">
+    <ul>
+      <li><a href="https://github.com/metrica-sports/more-than-a-hack-2027" target="_blank" rel="noopener">github.com/metrica-sports/more-than-a-hack-2027</a> — README, CHALLENGE.md, DATA.md, EVALUATION.md, SUBMISSION.md, RULES.md, FAQ.md, OVERVIEW.md, <code>evaluation/possession_metrics.py</code>, <code>evaluation/run_evaluation.py</code>, <code>evaluation/validate_submission.py</code>, <code>starter/*</code>, issues #2, #8, #10, #14, #15, #16, #17, <strong>#31 (open)</strong></li>
+      <li><a href="https://www.metrica-sports.com/blog/more-than-a-hack-2027-build-something-real-with-fc-barcelona-match-data" target="_blank" rel="noopener">metrica-sports.com — More Than A Hack 2027</a> — six-month structure, prizes, eligibility</li>
+      <li><a href="https://landing.mobileworldcapital.com/more-than-a-hack-2027" target="_blank" rel="noopener">landing.mobileworldcapital.com/more-than-a-hack-2027</a> — registration and stage overview</li>
+      <li>Official Drive bundle (<em>More Than A Hack 2027 - Initial Challenge - Dataset</em>) — all 8 non-video assets parsed in full; both videos inspected via container metadata and sampled frames</li>
+      <li><em>Premier League Project Ideas</em>, @ethandojo — user-supplied PDF, 4 pages, 13 ideas</li>
+      <li>Formation feasibility literature: npj <em>Complexity</em> — “Shape graphs and the instantaneous inference of tactical positions in soccer”; arXiv EFPI — template matching + linear assignment for formation identification</li>
+    </ul>
+  </div>
+
+  <p class="timestamp" style="text-align:center;margin-top:2rem;">Full deliberation transcript: <code>council-transcript-20261112-2104.md</code></p>
+</div>
+</body>
+</html>

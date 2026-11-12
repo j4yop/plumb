@@ -1,0 +1,104 @@
+# More Than A Hack 2027 — Phase 1: frame-level ball possession
+
+Estimate, for every frame of a real LaLiga match, which team has the ball.
+
+```
+python -m mtah.run --out artifacts/submission.csv --report artifacts/run_report.json
+```
+
+One command, about three seconds, CPU only, numpy only. The output is the competition's
+submission file: `frame,label`, exactly 199,319 rows.
+
+| | |
+|---|---|
+| **Metric** | `spellF1` — possessions matched one-to-one by temporal IoU, averaged over IoU 0.3–0.7 |
+| **Published floor** | `spellF1` 0.2433 (`baseline_smooth50`, scored on the full match) |
+| **This system, public 5-minute window** | `spellF1` **0.4824**, `macroF1` 0.6869 — above all four shipped baselines on that window |
+| **Possessions** | 354 over the match, against the ~360 implied by the organisers' own labels |
+| **Runtime** | 2.9 s for the whole match, single core |
+
+The public five minutes are a **correctness check**, never a tuning set — the organisers say
+explicitly that the variant that wins on them loses on the full match, and they are right: it
+does. See [`docs/TECHNICAL.md`](docs/TECHNICAL.md) for how each threshold was actually chosen.
+
+---
+
+## What it does
+
+The task is one question — *who has the ball, right now* — asked 25 times a second for two hours
+and thirteen minutes. The hard part is not the geometry; it is that **the ball is missing on
+40.69 % of the graded frames**, and that a possession is an *interval*, not a frame.
+
+Three ideas do the work:
+
+1. **Control, not proximity.** A team has the ball when the ball is inside its control radius and
+   outside the other team's, and the change has to persist. A touch, a deflection and an aerial
+   duel all fail that test, which is exactly the organisers' definition of a change of possession.
+2. **Decide in episodes, not frames.** Deciding per frame shattered one 41-second possession into
+   seven pieces. Ownership is decided on maximal runs of control and short episodes are absorbed
+   into their neighbours before they can become possessions.
+3. **Dead ball is a play state, not a missing ball.** In the frames the organisers call dead, the
+   ball is *visible* two thirds of the time. What separates them is that the players are not
+   running. The test "the ball is untracked and almost nobody is running" is 96 % precise — and it
+   is deliberately conservative, because a false dead-ball period splits a real possession in two,
+   while a missed one only makes a possession slightly too long.
+
+## Layout
+
+```
+src/mtah/
+  config.py      every threshold, in metres and seconds
+  match.py       load a match: metadata, tracking, set pieces  (deep module)
+  teams.py       per-frame team membership (experiment; off by default)
+  evidence.py    per-frame evidence: distances, activity, phases, absence classes
+  decide.py      ownership, spells, abstentions                (deep module)
+  emit.py        write the submission and check it against the official rules
+  report.py      what the submission says about itself
+  run.py         the command line
+docs/
+  PROBLEM.md        the questions the competition asks, and our answers
+  ARCHITECTURE.md   the modules and why they are shaped this way
+  TECHNICAL.md      the technical document that goes with the submission
+  PLAN.md           the plan, from now to the final pitch
+  adr/              decisions that were hard to reverse
+scripts/          diagnostics: what the public labels mean, and what we get wrong
+tests/            103 hermetic tests
+```
+
+## Getting the data
+
+The match data is licensed and is **not** in this repository. Enrol, accept the terms, download
+the bundle, and unpack it into `data/` (or point `MTAH_DATA_DIR` at it):
+
+```
+data/
+├─ tactical/   BAR-ATH_tactical.mp4, _atd.xml, _atd.txt, _homography.csv, _smart_tagging.xml
+└─ broadcast/  BAR-ATH_broadcast.mp4, _atd.xml, _atd.txt, _homography.csv
+```
+
+Verify your copy against the manifest:
+
+```bash
+cd data && shasum -a 256 -c ../MANIFEST.sha256
+```
+
+## Working on it
+
+```bash
+make install     # pip install -e .
+make reproduce   # regenerate artifacts/submission.csv
+make validate    # check it against the official rules
+make test        # 103 tests, under a second
+make report      # the run report: possessions, durations, coverage, phases
+```
+
+Every number in the technical document comes from `artifacts/run_report.json` or from one of the
+scripts in `scripts/`, so it can be regenerated rather than believed.
+
+## The rules we are working under
+
+- The labels must come out of an algorithm. There is no hand-labelling of the provided match
+  anywhere in this repository, for training or for validation.
+- The competition's data is not uploaded to any hosted service, and it is not committed here.
+- The public five minutes are used to check that the pipeline is aligned and to understand the
+  organisers' label semantics — never to choose between versions of the system.
