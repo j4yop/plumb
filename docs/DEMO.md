@@ -16,15 +16,15 @@ Rejected, and why:
 ## The command surface
 
 Not a REPL. A tool with designed verbs, because a designed surface reads as a product and a REPL
-reads as a script.
+reads as a script. The verb is the name: you *plumb* a claim.
 
 ```
-certify ask "where did we lose the ball most in the second half?"   # the answer, with its evidence
-certify ask --json "..."                                           # the same, machine-readable
-certify coverage --window second-half                              # what the tracking can and cannot carry
-certify why "..."                                                 # why the answer holds, or why it cannot
-certify close-gap "..."                                           # what would have to be collected to answer it
-certify ledger                                                    # metric | coverage | certified or refused | evidence frames
+plumb ask "where did we lose the ball most in the second half?"   # the answer, with its evidence
+plumb ask --json "..."                                           # the same, machine-readable
+plumb coverage --window second-half                              # what the tracking can and cannot carry
+plumb why "..."                                                 # why the answer holds, or why it cannot
+plumb close-gap "..."                                           # what would have to be collected to answer it
+plumb ledger                                                    # metric | coverage | supported or refused | evidence frames
 ```
 
 Output rules for the stage, because this is the part that gets rehearsed:

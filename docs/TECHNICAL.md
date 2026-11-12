@@ -1,5 +1,7 @@
 # Frame-level ball possession — technical document
 
+*PLUMB — Phase 1. The project this grows into is described in [`PROJECT.md`](PROJECT.md).*
+
 **More Than A Hack 2027, Initial Challenge** · FC Barcelona vs Athletic Club, LaLiga EA Sports
 2024–25, matchday 2 · tactical recording, 199,319 frames at 25 fps (2 h 12 m 52.8 s).
 

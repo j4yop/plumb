@@ -203,6 +203,38 @@ def control_episodes(evidence, config: Config):
     return signal, _merge_episodes(_episodes(signal), config.min_control_frames)
 
 
+def _smooth_dead_blocks(dead: np.ndarray, config: Config) -> np.ndarray:
+    """Clean the dead-ball mask at the block level.
+
+    Dead ball is an *episode*, not a frame, and the per-frame test is noisy in both directions: a
+    stoppage is broken by a frame where the tracker briefly saw the ball, and a momentary loss of
+    the ball in live play produces a two-frame dead block. So short dead blocks are dropped and
+    short gaps between dead blocks are closed. Both operations make the dead periods contiguous,
+    which is what a possession boundary needs: a dead ball in the middle of a possession splits it
+    in two, and the metric counts that as one true match and one spurious possession.
+    """
+    if not dead.any():
+        return dead
+    out = dead.copy()
+
+    # Drop dead blocks shorter than the minimum.
+    for start, stop, _label in _runs(out.astype(np.int8)):
+        if start == 0 or stop == out.shape[0]:
+            continue
+        if stop - start < config.dead_min_block_frames:
+            out[start:stop] = False
+
+    # Close gaps between dead blocks shorter than the maximum.
+    gap = config.dead_max_gap_frames
+    if gap > 0:
+        for start, stop, _label in _runs((~out).astype(np.int8)):
+            if start == 0 or stop == out.shape[0]:
+                continue
+            if stop - start <= gap:
+                out[start:stop] = True
+    return out
+
+
 def assign_owners(evidence, config: Config) -> Tuple[np.ndarray, List[Tuple[int, int, int]]]:
     """Per-frame owner, and the control episodes behind it.
 
@@ -234,6 +266,8 @@ def assign_owners(evidence, config: Config) -> Tuple[np.ndarray, List[Tuple[int,
         if evidence.dead is not None
         else np.isin(evidence.absence_class, (STOPPAGE, OUT_OF_PLAY, WARMUP))
     )
+    if config.dead_min_block_frames or config.dead_max_gap_frames:
+        dead = _smooth_dead_blocks(dead, config)
     current = -1
     pending_challenger = -1
     pending_count = 0

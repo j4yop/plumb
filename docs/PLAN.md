@@ -1,5 +1,7 @@
 # The plan
 
+*The project: **PLUMB**. See [`PROJECT.md`](PROJECT.md).*
+
 Two plans: the sprint to the Phase 1 deadline, and the project that follows it. All times are IST.
 
 ---

@@ -113,6 +113,13 @@ class Config:
     # owner forward until the ball is seen again.
     convergence_handover: bool = False
 
+    # --- dead-ball blocks ----------------------------------------------------------------------
+    # Dead ball is an episode. A dead block shorter than this is a momentary loss of the ball in
+    # live play and is dropped; a gap between dead blocks shorter than this is the tracker briefly
+    # seeing the ball during a stoppage, and is closed.
+    dead_min_block_frames: int = 25
+    dead_max_gap_frames: int = 13
+
     # --- spells ---------------------------------------------------------------------------------
     # Possessions shorter than this are merged into their neighbour. The ranking metric matches
     # possessions one-to-one, so a spurious short possession costs precision *and* breaks the

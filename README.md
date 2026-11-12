@@ -1,7 +1,11 @@
-# Certifying Football Claims From Incomplete Tracking
+# PLUMB
+
+*To plumb something is to find out where it actually stands.*
 
 **Phase 1 of More Than A Hack 2027** — frame-level ball possession for FC Barcelona vs Athletic
-Club, from Metrica's automatic tracking data.
+Club, from Metrica's automatic tracking data. The Phase 2 project checks every tracking-derived
+claim the same way: it supports one, or refuses it with the reason and what would have to be
+collected.
 
 ```
 python -m mtah.run --out artifacts/submission.csv --report artifacts/run_report.json
@@ -13,6 +17,8 @@ submission file: `frame,label`, exactly 199,319 rows.
 The project this grows into — the thesis, the name and what it has to earn — is in
 [`docs/PROJECT.md`](docs/PROJECT.md). How it is shown to the judges is in
 [`docs/DEMO.md`](docs/DEMO.md).
+
+**Team: Chappal.** The submission file is `artifacts/Chappal.csv`.
 
 | | |
 |---|---|
