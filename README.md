@@ -1,6 +1,7 @@
-# More Than A Hack 2027 — Phase 1: frame-level ball possession
+# Certifying Football Claims From Incomplete Tracking
 
-Estimate, for every frame of a real LaLiga match, which team has the ball.
+**Phase 1 of More Than A Hack 2027** — frame-level ball possession for FC Barcelona vs Athletic
+Club, from Metrica's automatic tracking data.
 
 ```
 python -m mtah.run --out artifacts/submission.csv --report artifacts/run_report.json
@@ -8,6 +9,10 @@ python -m mtah.run --out artifacts/submission.csv --report artifacts/run_report.
 
 One command, about three seconds, CPU only, numpy only. The output is the competition's
 submission file: `frame,label`, exactly 199,319 rows.
+
+The project this grows into — the thesis, the name and what it has to earn — is in
+[`docs/PROJECT.md`](docs/PROJECT.md). How it is shown to the judges is in
+[`docs/DEMO.md`](docs/DEMO.md).
 
 | | |
 |---|---|
