@@ -51,6 +51,10 @@ class Fact:
     scope: str = ""
     coverage_short: str = ""
     coverage_pct: Optional[float] = None  # the share of the claim's own scope with the ball seen
+    # "supported" | "unavailable". A claim can be unsupported because the feed cannot carry it,
+    # which is what a refusal is for — or because this match does not carry the data the claim
+    # needs at all, which is a different thing and must not be reported as a zero.
+    status: str = "supported"
 
     def __post_init__(self):
         if not self.coverage_short:
@@ -72,6 +76,7 @@ class Fact:
             "confidence": self.confidence,
             "evidence": self.evidence,
             "coverage_pct": self.coverage_pct,
+            "status": self.status,
         }
 
 
@@ -694,8 +699,20 @@ def pressing(analysis: Analysis, window: str = "all", zone: str = None,
 
 
 def restarts(analysis: Analysis, window: str = "all", zone: str = None,
-          phase: str = None) -> Fact:
+             phase: str = None) -> Fact:
     """Set pieces: who takes them, and who keeps the ball afterwards."""
+    if not phase_tools.by_code(analysis.phases, "SET PIECES"):
+        return Fact(
+            id="restarts",
+            title="Restarts",
+            answer="this match carries no set-piece annotation, so there is nothing to count.",
+            coverage="no Smart Tagging instances of type SET PIECES",
+            confidence="unavailable, not zero: the match has restarts, but the bundle does not "
+                       "say when they were",
+            evidence="0 instances",
+            scope=_scope_text(window, zone, phase),
+            status="unavailable",
+        )
     mask = _scoped_frames(analysis, window, zone, phase)
     tactic = TACTICS["restarts"](analysis, mask, analysis.geometry())
     return _tactic_fact(analysis, tactic, window, zone, phase, code="SET PIECES")
@@ -752,6 +769,17 @@ def box_presence(analysis: Analysis, window: str = "all", zone: str = None,
     exactly 16 times out of 91; counting its players in the box it defends reproduces it 74
     times out of 91, and lands within one player 90 times out of 91.
     """
+    if not phase_tools.by_code(analysis.phases, "PLAYERS IN THE BOX"):
+        return Fact(
+            id="box_presence",
+            title="Players in the box",
+            answer="this match carries no players-in-the-box annotation to check against.",
+            coverage="no Smart Tagging instances of type PLAYERS IN THE BOX",
+            confidence="unavailable, not zero",
+            evidence="0 instances",
+            scope=_scope_text(window, zone, phase),
+            status="unavailable",
+        )
     # The claim is about the tagged instances, so its scope is their windows.
     scope_code = phase or "PLAYERS IN THE BOX"
     mask = _scoped_frames(analysis, window, zone, scope_code)
@@ -826,6 +854,17 @@ def annotation_agreement(analysis: Analysis, window: str = "all", zone: str = No
     For every code the organisers tagged, how often do our possession labels agree with their
     annotation of who had the ball? No possession ground truth is involved.
     """
+    if not analysis.phases:
+        return Fact(
+            id="annotation_agreement",
+            title="Agreement with the organisers' own annotation",
+            answer="this match carries no Smart Tagging, so there is nothing to agree with.",
+            coverage="0 instances",
+            confidence="unavailable, not zero",
+            evidence="0 instances",
+            scope="the whole match",
+            status="unavailable",
+        )
     rows = []
     for code in phase_tools.ALL_CODES:
         result = phase_tools.agreement(analysis.phases, code, analysis.labels)

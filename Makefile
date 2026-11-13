@@ -17,7 +17,7 @@ FRAMES     ?= 199319
 export PYTHONPATH := src
 
 .PHONY: all install install-dev reproduce validate test report clean help ask coverage ledger \
-        external stability dead-onset demo
+        external stability dead-onset demo ledger
 
 all: test validate
 
@@ -36,6 +36,7 @@ help:
 	@echo "stability    the label-free merge-length criterion, on four matches"
 	@echo "dead-onset   the three dead-ball onset rules, and what each costs"
 	@echo "demo         the five-minute pitch, end to end, from the committed code"
+	@echo "ledger       the ledger over the three external matches (add GAMES=1,2,3)"
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -79,6 +80,9 @@ dead-onset:
 # The pitch: five beats, deterministic, and it records the fallback transcript.
 demo:
 	$(PYTHON) scripts/demo.py --record docs/demo-transcript.txt
+
+ledger:
+	$(PYTHON) scripts/ledger.py --games 1,2,3 --out artifacts/ledger.md
 
 clean:
 	rm -rf artifacts .pytest_cache

@@ -336,6 +336,38 @@ def test_the_annotation_is_matched_against_the_matches_own_names():
 
 
 # --------------------------------------------------------------------------------------------------
+# A claim the match cannot carry at all
+# --------------------------------------------------------------------------------------------------
+
+
+def test_a_claim_without_its_annotation_is_unavailable_not_zero(analysis):
+    """No Smart Tagging means no restarts fact — and that is not the same as zero restarts."""
+    analysis.phases = []
+    try:
+        for fact_id in ("restarts", "box_presence", "annotation_agreement"):
+            fact = FACT_LIBRARY[fact_id](analysis, "all")
+            assert fact.status == "unavailable", fact_id
+            assert "no" in fact.answer.lower(), fact_id
+            assert fact.to_dict()["status"] == "unavailable"
+    finally:
+        analysis.phases = []
+
+
+def test_the_ledger_reports_the_status(analysis):
+    import importlib.util
+    import os
+
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        "scripts", "ledger.py")
+    spec = importlib.util.spec_from_file_location("ledger_script", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    rows = module.ledger_rows(analysis)
+    assert len(rows) == len(FACT_LIBRARY)
+    assert all(len(row) == 5 for row in rows)
+
+
+# --------------------------------------------------------------------------------------------------
 # The command surface
 # --------------------------------------------------------------------------------------------------
 
