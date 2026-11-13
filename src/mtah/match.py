@@ -13,7 +13,7 @@ from __future__ import annotations
 import os
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -47,7 +47,11 @@ class Match:
     ball_speed:
         ``(n_frames,)`` float32 speed in m/s; NaN where unobserved.
     set_pieces:
-        List of ``(start_frame, end_frame, kind)`` from Smart Tagging, half-open on the right.
+        List of ``(start_frame, end_frame, kind)`` from the Smart Tagging ``SET PIECES``
+        instances.
+    phases:
+        Every Smart Tagging instance, as :class:`Phase` records: the tactical annotation of the
+        match in the organisers' own vocabulary.
     """
 
     n_frames: int
@@ -59,6 +63,7 @@ class Match:
     ball_xy: np.ndarray
     ball_speed: np.ndarray
     set_pieces: List[Tuple[int, int, str]] = field(default_factory=list)
+    phases: List[Phase] = field(default_factory=list)
 
     @property
     def home_slots(self) -> np.ndarray:
@@ -154,12 +159,71 @@ def parse_meta(meta_path: str) -> Tuple[Tuple[str, str], np.ndarray]:
 
 
 # --------------------------------------------------------------------------------------------------
-# Smart Tagging: set-piece windows
+# Smart Tagging: set-piece windows and the tactical phase annotation
 # --------------------------------------------------------------------------------------------------
 
 
+@dataclass
+class Phase:
+    """One Smart Tagging instance: a window of the match, a code, and a team.
+
+    The Smart Tagging file is not only set pieces. It is 638 instances spread over fifteen
+    codes, and the codes are the organisers' own vocabulary for the tactical aspects of the
+    match. See ``docs/PROJECT.md``.
+
+    Every label of the instance is kept: ``Team``, ``Type``, ``Half``, and the ones that only
+    some codes carry, such as ``Max Players in the box`` or ``Direction of ball entry``. Those
+    are the organisers' own measurements, and they are the closest thing to a reference answer
+    that the bundle contains.
+    """
+
+    start: int  # video frame, inclusive
+    end: int  # video frame, inclusive
+    code: str
+    team: str  # the team named by the annotation, or "N/A"
+    kind: str  # the set-piece type, for restarts; "" otherwise
+    half: str
+    labels: Dict[str, str] = field(default_factory=dict)
+
+
+def parse_phases(path: str, fps: float = 25.0) -> List[Phase]:
+    """Every Smart Tagging instance, as :class:`Phase` records.
+
+    Times in the file are seconds from the first frame of the recording, so a frame is
+    ``round(seconds * fps)``. Instances are grouped by code in the file, *not* sorted by time,
+    so the result is sorted here.
+    """
+    if not os.path.isfile(path):
+        return []
+    phases: List[Phase] = []
+    for instance in ET.parse(path).getroot().iter("instance"):
+        start = float(instance.findtext("start"))
+        end = float(instance.findtext("end"))
+        labels = {
+            label.findtext("group"): (label.findtext("text") or "").strip()
+            for label in instance.findall("label")
+        }
+        phases.append(
+            Phase(
+                start=int(round(start * fps)),
+                end=int(round(end * fps)),
+                code=(instance.findtext("code") or "").strip(),
+                team=labels.get("Team", ""),
+                kind=labels.get("Type", ""),
+                half=labels.get("Half", ""),
+                labels=labels,
+            )
+        )
+    phases.sort(key=lambda p: (p.start, p.end, p.code))
+    return phases
+
+
 def parse_smart_tagging(path: str, fps: float = 25.0) -> List[Tuple[int, int, str]]:
-    """Smart Tagging instances as ``(start_frame, end_frame, kind)`` triples.
+    """The set-piece windows, as ``(start_frame, end_frame, kind)`` triples.
+
+    Only the instances coded ``SET PIECES`` are returned: the other 579 instances in the file
+    are tactical phases (build-up, progression, chances, transitions, and so on) and are not
+    restarts. They are read separately by :func:`parse_phases`.
 
     Times in the file are seconds from the first frame of the recording, so a frame is
     ``round(seconds * fps)``. Instances are grouped by code in the file, *not* sorted by time, and
@@ -170,6 +234,8 @@ def parse_smart_tagging(path: str, fps: float = 25.0) -> List[Tuple[int, int, st
         return []
     windows: List[Tuple[int, int, str]] = []
     for instance in ET.parse(path).getroot().iter("instance"):
+        if (instance.findtext("code") or "").strip() != "SET PIECES":
+            continue
         start = float(instance.findtext("start"))
         end = float(instance.findtext("end"))
         kind = ""
@@ -324,8 +390,10 @@ def load_match(config: Config) -> Match:
     arrays = read_atd(paths["atd_raw"], int(slot_team.shape[0]), config)
 
     set_pieces: List[Tuple[int, int, str]] = []
+    phases: List[Phase] = []
     if "smart_tagging" in paths:
         set_pieces = parse_smart_tagging(paths["smart_tagging"])
+        phases = parse_phases(paths["smart_tagging"])
 
     return Match(
         n_frames=int(arrays["player_xy"].shape[0]),
@@ -337,4 +405,5 @@ def load_match(config: Config) -> Match:
         ball_xy=arrays["ball_xy"],
         ball_speed=arrays["ball_speed"],
         set_pieces=set_pieces,
+        phases=phases,
     )

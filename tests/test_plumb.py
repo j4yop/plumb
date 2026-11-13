@@ -74,6 +74,9 @@ def build_analysis(n_frames: int = 600, seed: int = 0) -> Analysis:
         spells=decision.spells,
         evidence=evidence,
         ball_xy=match.ball_xy,
+        player_xy=match.player_xy,
+        player_speed=match.player_speed,
+        slot_team=match.slot_team,
         n_frames=n_frames,
     )
 
