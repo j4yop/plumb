@@ -60,6 +60,34 @@ class Transcript:
                 handle.write("\n" + extra)
 
 
+def provenance() -> List[str]:
+    """What this transcript was recorded from: the commit, and the data it read.
+
+    A fallback recording is only worth having if a reviewer can tell *exactly* what produced it.
+    The commit pins the code; the manifest pins the licensed data; the two together mean a
+    disputed line can be replayed rather than argued about.
+    """
+    lines = ["", "  recorded from"]
+    try:
+        commit = subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"], cwd=os.path.dirname(os.path.dirname(
+                os.path.abspath(__file__))), text=True, stderr=subprocess.DEVNULL
+        ).strip()
+        lines.append("    commit      {}".format(commit))
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+        lines.append("    commit      (not a git checkout)")
+
+    manifest = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "MANIFEST.sha256")
+    if os.path.isfile(manifest):
+        with open(manifest, "rb") as handle:
+            digest = hashlib.sha256(handle.read()).hexdigest()[:16]
+        lines.append("    data        MANIFEST.sha256, sha256 {}".format(digest))
+    else:
+        lines.append("    data        no MANIFEST.sha256 on this machine")
+    return lines
+
+
 def beat(transcript: Transcript, number: int, title: str, pause: bool) -> None:
     if pause:
         input("\n  -- press Enter for beat {} --".format(number))
@@ -150,6 +178,8 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     transcript("")
     transcript("  end of demo. {} beats, {} lines of evidence.".format(5, len(transcript.lines)))
+    for line in provenance():
+        transcript(line)
 
     transcript.save(extra="\n# recorded from the committed code path; no hand editing")
     if args.record:

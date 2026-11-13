@@ -114,4 +114,8 @@
 
   end of demo. 5 beats, 47 lines of evidence.
 
+  recorded from
+    commit      9e26689
+    data        MANIFEST.sha256, sha256 c8b857e7d2b3ef59
+
 # recorded from the committed code path; no hand editing
