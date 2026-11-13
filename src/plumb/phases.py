@@ -118,13 +118,13 @@ def agreement(phases: List[Phase], code: str, labels: np.ndarray, team_of: str =
     total = 0
     agree = 0
     named = 0
-    for phase in by_code(phases, code):
-        team = team_index(phase.team)
+    for instance in by_code(phases, code):
+        team = team_index(instance.team)
         if team < 0:
             continue
         expected = 1 - team if defending else team
-        lo = max(0, phase.start)
-        hi = min(labels.shape[0] - 1, phase.end)
+        lo = max(0, instance.start)
+        hi = min(labels.shape[0] - 1, instance.end)
         if hi < lo:
             continue
         block = labels[lo:hi + 1]

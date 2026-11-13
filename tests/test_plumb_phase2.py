@@ -180,6 +180,24 @@ def test_the_scope_narrows_the_coverage_claim(analysis):
     assert scoped.coverage_pct != whole.coverage_pct or scoped.scope != whole.scope
 
 
+def test_a_phase_scope_has_to_be_asked_for_explicitly():
+    """"How did they build up" is about the window; "in the build up phases" is not."""
+    assert router.route("how did they build up in the first half").phase is None
+    assert router.route("how did they build up in the build up phases").phase == "BUILD UP"
+
+
+def test_a_tactical_claim_is_not_covered_by_its_own_observations(analysis):
+    """The coverage must not be 100 % by construction.
+
+    A claim measured only over the frames in which the ball was observed would report perfect
+    coverage. It has to rest on the possession frames instead, and then the coverage says
+    something.
+    """
+    fact = FACT_LIBRARY["build_up"](analysis, "all")
+    assert fact.coverage_pct is not None
+    assert fact.coverage_pct < 1.0
+
+
 def test_a_phase_scope_selects_the_tagged_frames(analysis):
     """The frames of a phase scope are the frames the annotation covers."""
     from mtah.match import Phase

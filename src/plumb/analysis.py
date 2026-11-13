@@ -21,7 +21,7 @@ from mtah.decide import assign_owners, build_spells
 from mtah.evidence import Evidence, build_evidence
 from mtah.match import Match, load_match
 
-CACHE_VERSION = 3
+CACHE_VERSION = 4
 
 
 @dataclass

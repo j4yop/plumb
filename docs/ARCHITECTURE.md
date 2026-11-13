@@ -40,6 +40,23 @@ the seams are.
    └────────────────────────┘
 ```
 
+Above that pipeline sits the claims engine, which is the Phase-2 deliverable. It reads the
+possession engine's output and never writes to it:
+
+```
+    Match ──▶ plumb.analysis ──▶ plumb.coverage      the reliability engine
+                   │                plumb.tactics       the six tactical aspects
+                   │                plumb.phases        the organisers' own annotation
+                   ▼                     │
+            plumb.facts  ────────────────┘
+                   │                     scope, coverage, confidence, evidence
+                   ▼
+            plumb.router  ──▶  plumb.plan
+                   │            the collection plan behind a refusal
+                   ▼
+            plumb.cli
+```
+
 ## The seams, and why they are there
 
 **The loading seam (`mtah.match`).** Everything that knows about file formats stops here. Callers

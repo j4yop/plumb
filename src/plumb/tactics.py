@@ -243,11 +243,11 @@ def restarts(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
     spells = [s for s in analysis.spells if s[2] in (HOME, AWAY)]
     spell_starts = [s[0] for s in spells]
 
-    for phase in analysis.phases:
-        if phase.code != "SET PIECES":
+    for instance in analysis.phases:
+        if instance.code != "SET PIECES":
             continue
-        lo = max(0, phase.start)
-        hi = min(n - 1, phase.end)
+        lo = max(0, instance.start)
+        hi = min(n - 1, instance.end)
         if hi < lo or not mask[lo:hi + 1].any():
             continue
         frames[lo:hi + 1] = True
@@ -262,7 +262,7 @@ def restarts(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
             continue
 
         taken[taker] += 1
-        kinds.setdefault(phase.kind or "unspecified", {HOME: 0, AWAY: 0})[taker] += 1
+        kinds.setdefault(instance.kind or "unspecified", {HOME: 0, AWAY: 0})[taker] += 1
 
         # The possession that starts at the restart: how long does the taker keep it?
         index = int(np.searchsorted(spell_starts, first, side="right")) - 1
@@ -335,6 +335,10 @@ def pressing(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
     n = analysis.n_frames
     evidence = analysis.evidence
     live = _alive(analysis, mask) & evidence.ball_present
+    # The frames the claim rests on are the possession frames, *not* only the frames in which
+    # the ball happened to be observed: a claim is measured over the whole possession, and the
+    # coverage is then the share of it the tracker could carry.
+    resting = _alive(analysis, mask)
 
     # For the team in possession, the press comes from the other side, so the press distance is
     # the distance to the other team's nearest player.
@@ -362,7 +366,7 @@ def pressing(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
     possessions = [
         (a, b, label)
         for a, b, label in analysis.spells
-        if label in (HOME, AWAY) and mask[a:min(b + 1, n)].any()
+        if label in (HOME, AWAY) and mask[a:min(b, n)].any()
     ]
     alive = _alive(analysis, np.ones(n, dtype=bool))
     engaged = 0
@@ -373,7 +377,7 @@ def pressing(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
     speeds: List[float] = []
 
     for a, b, label in possessions:
-        stop = min(b + 1, n)
+        stop = min(b, n)
         window = press_distance[a:stop]
         finite = window[np.isfinite(window)]
         if finite.size == 0:
@@ -418,7 +422,7 @@ def pressing(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
             title="Pressing",
             answer="no live possession in this window to press.",
             detail=detail,
-            frames=live,
+            frames=resting,
             confidence="nothing to measure",
         )
 
@@ -428,7 +432,7 @@ def pressing(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
         answer="the press engaged hard in {} of {} possessions, and won the ball back in {} of "
                "those.".format(hard, engaged, won),
         detail=detail,
-        frames=live,
+        frames=resting,
         confidence="a press engages hard when three or more of the defending team are within "
                    "fifteen metres of the ball; the outcome is the change of possession within "
                    "five seconds of that moment",
@@ -446,6 +450,7 @@ def build_up(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
     length = analysis.pitch_length_m
     live = _alive(analysis, mask) & analysis.evidence.ball_present
     in_possession = analysis.labels
+    resting = _alive(analysis, mask)
 
     line_height = np.full(n, np.nan, dtype=np.float32)
     options = np.full(n, np.nan, dtype=np.float32)
@@ -481,7 +486,7 @@ def build_up(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
         carrier_progress = progress[np.arange(hi - lo), carrier]
         own_goal[lo:hi] = carrier_progress.astype(np.float32)
 
-    frames = live
+    frames = resting
     if not frames.any():
         return Tactic(
             id="build_up",
@@ -523,6 +528,7 @@ def defending(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
     home_right = attacking_sides(analysis)
     live = _alive(analysis, mask) & analysis.evidence.ball_present
     in_possession = analysis.labels
+    resting = _alive(analysis, mask)
 
     width = np.full(n, np.nan, dtype=np.float32)
     height = np.full(n, np.nan, dtype=np.float32)
@@ -569,7 +575,7 @@ def defending(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
             pressure[lo:hi] = np.where(defending_now, near, pressure[lo:hi])
             in_box[lo:hi] = np.where(defending_now, box_count, in_box[lo:hi])
 
-    frames = live
+    frames = resting
     if not frames.any():
         return Tactic(
             id="defending",
@@ -617,11 +623,11 @@ def transitions(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
     possessions = [
         (a, b, label)
         for a, b, label in analysis.spells
-        if label in (HOME, AWAY) and mask[a:min(b + 1, n)].any()
+        if label in (HOME, AWAY) and mask[a:min(b, n)].any()
     ]
     frames = np.zeros(n, dtype=bool)
     for a, b, _ in possessions:
-        frames[a:min(b + 1, n)] = True
+        frames[a:min(b, n)] = True
 
     chains: List[int] = []
     current = 0
@@ -708,7 +714,7 @@ def chance_creation(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tact
     possessions = [
         (a, b, label)
         for a, b, label in analysis.spells
-        if label in (HOME, AWAY) and mask[a:min(b + 1, n)].any()
+        if label in (HOME, AWAY) and mask[a:min(b, n)].any()
     ]
     frames = np.zeros(n, dtype=bool)
     entries_final = 0
@@ -718,7 +724,7 @@ def chance_creation(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tact
     home_entries = 0
     away_entries = 0
     for a, b, label in possessions:
-        window = slice(a, min(b + 1, n))
+        window = slice(a, min(b, n))
         frames[window] = True
         for zone, counter in ((final_third, "final"), (box, "box")):
             inside = zone[window]

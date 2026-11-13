@@ -257,20 +257,22 @@ WINDOW_RULES: List[Tuple[str, List[str]]] = [
 ]
 
 # The tactical phases the organisers' own annotation uses. A question may name one.
+# The phase scope has to be asked for explicitly: "how did they build up" is a question about
+# the whole window, while "in the build up phases" is a question about the tagged instances.
 PHASE_RULES: List[Tuple[str, List[str]]] = [
-    ("BUILD UP", [r"build[- ]?up phase", r"building up", r"playing out"]),
-    ("PROGRESSION", [r"progression phase", r"progressive phase"]),
-    ("CREATING CHANCES", [r"creating chances phase", r"chance[- ]creation phase"]),
-    ("LONG BALL", [r"long ball phase"]),
-    ("ATTACKING TRANSITION", [r"attacking transition phase"]),
-    ("DEFENSIVE TRANSITION", [r"defensive transition phase"]),
-    ("DEFENDING IN MIDDLE THIRD", [r"defending in (the )?middle third phase"]),
-    ("DEFENDING IN DEFENSIVE THIRD", [r"defending in (the )?defensive third phase"]),
-    ("DEFENDING IN ATTACKING THIRD", [r"defending in (the )?attacking third phase"]),
-    ("PLAYERS IN THE BOX", [r"players in the box phase"]),
-    ("BALL IN FINAL THIRD", [r"ball in (the )?final third phase"]),
-    ("BALL IN THE BOX", [r"ball in (the )?box phase"]),
-    ("SET PIECES", [r"set piece phase"]),
+    ("BUILD UP", [r"build[- ]?up phases?\b"]),
+    ("PROGRESSION", [r"progression phases?\b", r"progressive phases?\b"]),
+    ("CREATING CHANCES", [r"creating chances phases?\b", r"chance[- ]creation phases?\b"]),
+    ("LONG BALL", [r"long ball phases?\b"]),
+    ("ATTACKING TRANSITION", [r"attacking transition phases?\b"]),
+    ("DEFENSIVE TRANSITION", [r"defensive transition phases?\b"]),
+    ("DEFENDING IN MIDDLE THIRD", [r"defending in (the )?middle third phases?\b"]),
+    ("DEFENDING IN DEFENSIVE THIRD", [r"defending in (the )?defensive third phases?\b"]),
+    ("DEFENDING IN ATTACKING THIRD", [r"defending in (the )?attacking third phases?\b"]),
+    ("PLAYERS IN THE BOX", [r"players in the box phases?\b"]),
+    ("BALL IN FINAL THIRD", [r"ball in (the )?final third phases?\b"]),
+    ("BALL IN THE BOX", [r"ball in (the )?box phases?\b"]),
+    ("SET PIECES", [r"set piece phases?\b"]),
 ]
 
 # Zones: the part of the pitch a claim can be about.

@@ -38,9 +38,29 @@ one whose error is cheap.
 The Innovation Challenge dataset (10 professional matches with tracking and event data) does not
 arrive until 26 November, so there is nothing to build against.
 
+**What is already done, because it did not need the dataset:**
+
+- [x] The **reliability engine** (`src/plumb/coverage.py`): per-frame support from four automatic
+      checks, the decision margin, the sensitivity. Claim-scoped, not match-scoped.
+- [x] The **fact library extended beyond possession** (`src/plumb/facts.py`, `src/plumb/tactics.py`):
+      eighteen claims — restarts, pressing, build-up, progression, chance creation, defending
+      shape, transitions, long balls, players in the box — each keyed to the organisers' own
+      Smart Tagging codes.
+- [x] The **validation source found**: the Smart Tagging's 140 mirror pairs state who had the
+      ball over 65,724 frames, and we agree with them on 77.6 %. We reproduce the organisers' own
+      count of players in the box exactly 74 times out of 91. ADR 0009.
+- [x] The **refusal gate with collection plans** (`src/plumb/plan.py`): the gap measured in frames
+      and seconds, not described.
+- [x] The **external tuning harness** extended to Metrica's public sample match, with the
+      event-derived possession truth — so the ten-match dataset can be tuned on external data
+      from the first hour it lands, exactly as the rules require.
+
+**What is left for this window:**
+
 - Pull two or three **public** Metrica tracking matches (the sample data is open) and hand-label
   formations on them — legal, because the ban is only on the provided match.
-- Extend the fact library so that the Phase 2 project does not start from nothing.
+- Make the engine **read a directory of matches** rather than one, so the ten-match ledger is a
+  configuration change rather than a rewrite.
 - Read the briefs when they land on the 26th, and point the work at the aspect the organisers name.
 
 ---
@@ -60,18 +80,22 @@ Three components, in build order:
 1. **The reliability engine** — a per-frame coverage model of the tracking (ball visibility,
    player-count anomalies, slot churn, tracking error), with an in-silico error-injection study
    to measure which conclusions survive noise. *This is the same idea as the dead-ball
-   classifier, generalised.*
+   classifier, generalised.* — **built; the ten-match re-run is the work.**
 2. **The verified fact library** — forty deterministic tactical facts (possession, restarts,
    pressing, build-up, defending, transitions, chance creation), each carrying its evidence
    frames, its coverage basis and a confidence band. Facts are aspect-agnostic, so they survive
-   whichever aspect the briefs name.
+   whichever aspect the briefs name. — **eighteen built; the rest to come with the dataset.**
 3. **The interface** — local intent routing, deterministic rendering, and a **deterministic
    refusal gate**: when the coverage does not support a claim, the system says so and says what
-   would be needed. The language model, if any, classifies the question and nothing else.
+   would be needed. The language model, if any, classifies the question and nothing else. —
+   **built; the ten-match ledger is the work.**
 
 **Kill criteria.** If the coverage engine cannot beat naive coverage on a held-out match, the
 project changes shape. If a fact library entry cannot be validated against organiser-provided
 labels on the new matches, it does not ship.
+
+**The ledger is the artefact that matters:** one row per claim per match, with what it rests on.
+Readable by a human, checkable by a script, and the thing a club would actually take away.
 
 ---
 

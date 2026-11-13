@@ -251,7 +251,7 @@ def possession_count(analysis: Analysis, window: str = "all", zone: str = None,
     for a, b, label in analysis.spells:
         if label not in (HOME, AWAY) or a > end or b < start:
             continue
-        if zone_mask is not None and not zone_mask[a:min(b + 1, analysis.n_frames)].any():
+        if zone_mask is not None and not zone_mask[a:min(b, analysis.n_frames)].any():
             continue
         spells.append((a, b, label))
     durations = [(b - a) / 25.0 for a, b, _ in spells]
@@ -354,7 +354,7 @@ def longest_possession(analysis: Analysis, window: str = "all", zone: str = None
         confidence="the boundaries are where the tracker last saw the ball with one team",
         evidence="frames {:,}-{:,}".format(a, b),
         scope=_scope_text(window, zone, phase),
-        coverage_pct=_coverage_pct_range(analysis, a, b + 1),
+        coverage_pct=_coverage_pct_range(analysis, a, b),
     )
 
 
@@ -497,8 +497,13 @@ def _agreement_line(analysis: Analysis, code: str) -> str:
     )
 
 
-def _tactic_fact(analysis: Analysis, tactic, window: str, code: str = None) -> Fact:
-    """Turn a tactic computation into a fact with claim-scoped coverage."""
+def _tactic_fact(analysis: Analysis, tactic, window: str, zone: str = None,
+                 phase: str = None, code: str = None) -> Fact:
+    """Turn a tactic computation into a fact with claim-scoped coverage.
+
+    ``code`` is the Smart Tagging code the aspect corresponds to, and it is used only for the
+    agreement line — the *scope* is what the question asked about, not the code.
+    """
     frames = tactic.frames
     scope = analysis.coverage().scope(frames)
     agreement = _agreement_line(analysis, code) if code else ""
@@ -522,7 +527,7 @@ def _tactic_fact(analysis: Analysis, tactic, window: str, code: str = None) -> F
             int(np.flatnonzero(frames)[0]) if frames.any() else 0,
             int(np.flatnonzero(frames)[-1]) if frames.any() else 0,
         ),
-        scope=_scope_text(window, code=code),
+        scope=_scope_text(window, zone, phase),
         coverage_pct=scope["ball_visibility"],
     )
 
@@ -532,7 +537,7 @@ def build_up(analysis: Analysis, window: str = "all", zone: str = None,
     """How the team in possession played the ball out."""
     mask = _scoped_frames(analysis, window, zone, phase)
     tactic = TACTICS["build_up"](analysis, mask, analysis.geometry())
-    return _tactic_fact(analysis, tactic, window, code="BUILD UP")
+    return _tactic_fact(analysis, tactic, window, zone, phase, code="BUILD UP")
 
 
 def progression(analysis: Analysis, window: str = "all", zone: str = None,
@@ -545,6 +550,9 @@ def progression(analysis: Analysis, window: str = "all", zone: str = None,
     """
     mask = _scoped_frames(analysis, window, zone, phase)
     alive = mask & (analysis.labels != DEAD) & analysis.evidence.ball_present
+    # The claim rests on the possession frames; the coverage is then the share of them the
+    # tracker could carry.
+    resting = mask & (analysis.labels != DEAD)
     home_right = attacking_sides(analysis)
     length = analysis.pitch_length_m
     own_right = np.where(analysis.labels == HOME, home_right, ~home_right)
@@ -554,10 +562,10 @@ def progression(analysis: Analysis, window: str = "all", zone: str = None,
     net = []
     possessions = [
         (a, b, label) for a, b, label in analysis.spells
-        if label in (HOME, AWAY) and mask[a:min(b + 1, analysis.n_frames)].any()
+        if label in (HOME, AWAY) and mask[a:min(b, analysis.n_frames)].any()
     ]
     for a, b, label in possessions:
-        stop = min(b + 1, analysis.n_frames)
+        stop = min(b, analysis.n_frames)
         values = progress[a:stop][alive[a:stop]]
         if values.size < 2:
             continue
@@ -581,12 +589,12 @@ def progression(analysis: Analysis, window: str = "all", zone: str = None,
         answer="a possession carried the ball {:.1f} m up the pitch, for a net gain of "
                "{:+.1f} m.".format(carried_mean, net_mean),
         detail=detail,
-        coverage=_coverage_sentence(analysis, alive),
+        coverage=_coverage_sentence(analysis, resting),
         confidence="{}; the distance is integrated from the tracker's own ball positions, so it "
                    "carries the tracker's error".format(agreement),
         evidence="frames {:,}-{:,}".format(*analysis.window(window)),
-        scope=_scope_text(window, code="PROGRESSION"),
-        coverage_pct=_coverage_pct(analysis, alive),
+        scope=_scope_text(window, zone, phase),
+        coverage_pct=_coverage_pct(analysis, resting),
     )
 
 
@@ -607,6 +615,7 @@ def attacking_transition(analysis: Analysis, window: str = "all", zone: str = No
     """
     mask = _scoped_frames(analysis, window, zone, phase)
     alive = mask & (analysis.labels != DEAD) & analysis.evidence.ball_present
+    resting = mask & (analysis.labels != DEAD)
     home_right = attacking_sides(analysis)
     length = analysis.pitch_length_m
     own_right = np.where(analysis.labels == HOME, home_right, ~home_right)
@@ -614,7 +623,7 @@ def attacking_transition(analysis: Analysis, window: str = "all", zone: str = No
 
     possessions = [
         (a, b, label) for a, b, label in analysis.spells
-        if label in (HOME, AWAY) and mask[a:min(b + 1, analysis.n_frames)].any()
+        if label in (HOME, AWAY) and mask[a:min(b, analysis.n_frames)].any()
     ]
     gained = []
     carried = []
@@ -623,7 +632,7 @@ def attacking_transition(analysis: Analysis, window: str = "all", zone: str = No
         a, b, label = possessions[index]
         if label == previous_label:
             continue
-        stop = min(b + 1, analysis.n_frames)
+        stop = min(b, analysis.n_frames)
         window_progress = progress[a:stop][alive[a:stop]]
         if window_progress.size < 2:
             continue
@@ -644,13 +653,13 @@ def attacking_transition(analysis: Analysis, window: str = "all", zone: str = No
         answer="after winning the ball, a team carried it {:.1f} m forward, for a net gain of "
                "{:+.1f} m.".format(carried_mean, gain_mean),
         detail=detail,
-        coverage=_coverage_sentence(analysis, alive),
+        coverage=_coverage_sentence(analysis, resting),
         confidence="{}; a transition is measured from the first observed frame of the new "
                    "possession, so a possession the tracker loses at the start is measured over "
                    "the part that was seen".format(agreement),
         evidence="frames {:,}-{:,}".format(*analysis.window(window)),
-        scope=_scope_text(window, code="ATTACKING TRANSITION"),
-        coverage_pct=_coverage_pct(analysis, alive),
+        scope=_scope_text(window, zone, phase),
+        coverage_pct=_coverage_pct(analysis, resting),
     )
 
 
@@ -678,7 +687,7 @@ def pressing(analysis: Analysis, window: str = "all", zone: str = None,
     """How the team without the ball presses, and whether the press wins it."""
     mask = _scoped_frames(analysis, window, zone, phase)
     tactic = TACTICS["pressing"](analysis, mask, analysis.geometry())
-    return _tactic_fact(analysis, tactic, window, code="ATTACKING TRANSITION")
+    return _tactic_fact(analysis, tactic, window, zone, phase, code="DEFENSIVE TRANSITION")
 
 
 def restarts(analysis: Analysis, window: str = "all", zone: str = None,
@@ -686,7 +695,7 @@ def restarts(analysis: Analysis, window: str = "all", zone: str = None,
     """Set pieces: who takes them, and who keeps the ball afterwards."""
     mask = _scoped_frames(analysis, window, zone, phase)
     tactic = TACTICS["restarts"](analysis, mask, analysis.geometry())
-    return _tactic_fact(analysis, tactic, window, code="SET PIECES")
+    return _tactic_fact(analysis, tactic, window, zone, phase, code="SET PIECES")
 
 
 def long_ball(analysis: Analysis, window: str = "all", zone: str = None,
@@ -694,6 +703,7 @@ def long_ball(analysis: Analysis, window: str = "all", zone: str = None,
     """How often the ball was played long, and what came of it."""
     mask = _scoped_frames(analysis, window, zone, phase)
     alive = mask & (analysis.labels != DEAD) & analysis.evidence.ball_present
+    resting = mask & (analysis.labels != DEAD)
     if not alive.any():
         return Fact("long_ball", "Long balls", "No live frames.", scope=_scope_text(window))
 
@@ -715,12 +725,12 @@ def long_ball(analysis: Analysis, window: str = "all", zone: str = None,
         answer="the ball was travelling faster than 15 m/s on {} of the live frames.".format(
             "{:,}".format(int(long_balls.sum()))),
         detail=detail,
-        coverage=_coverage_sentence(analysis, alive),
+        coverage=_coverage_sentence(analysis, resting),
         confidence="{}; the speed is differentiated from the tracker's own positions, so it "
                    "carries the tracker's error".format(agreement),
         evidence="frames {:,}-{:,}".format(*analysis.window(window)),
-        scope=_scope_text(window, code="LONG BALL"),
-        coverage_pct=_coverage_pct(analysis, alive),
+        scope=_scope_text(window, zone, phase),
+        coverage_pct=_coverage_pct(analysis, resting),
     )
 
 
@@ -764,13 +774,13 @@ def box_presence(analysis: Analysis, window: str = "all", zone: str = None,
 
     ours = []
     theirs = []
-    for phase in phase_tools.by_code(analysis.phases, "PLAYERS IN THE BOX"):
-        team = phase_tools.team_index(phase.team)
-        stated = phase.labels.get("Max Players in the box", "")
+    for instance in phase_tools.by_code(analysis.phases, "PLAYERS IN THE BOX"):
+        team = phase_tools.team_index(instance.team)
+        stated = instance.labels.get("Max Players in the box", "")
         if team < 0 or not stated.isdigit():
             continue
         block = (home_in_box if team == HOME else away_in_box)[
-            max(0, phase.start):min(n, phase.end + 1)
+            max(0, instance.start):min(n, instance.end + 1)
         ]
         if not block.size:
             continue
@@ -799,7 +809,7 @@ def box_presence(analysis: Analysis, window: str = "all", zone: str = None,
                    "rather than instants, so a maximum over a wide window is a generous "
                    "comparison",
         evidence="frames {:,}-{:,}".format(*analysis.window(window)),
-        scope=_scope_text(window, code="PLAYERS IN THE BOX"),
+        scope=_scope_text(window, zone, phase),
         coverage_pct=_coverage_pct(analysis, mask),
     )
 
