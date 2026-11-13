@@ -143,7 +143,7 @@ def _scope_text(window: str, zone: Optional[str] = None, code: Optional[str] = N
     parts = []
     if code:
         parts.append("the {} phases".format(code.lower()))
-    if zone and zone != "all":
+    if zone and zone != "all" and not code:
         parts.append("in the {}".format(zone.replace("-", " ")))
     if window and window != "all":
         parts.append("in the {}".format(window.replace("-", " ")))
@@ -380,7 +380,8 @@ def ball_visibility(analysis: Analysis, window: str = "all", zone: str = None,
             ("support score", "{:.0%}".format(scope["support"])),
             ("duplicate players", "{:.1%} of the frames".format(scope["duplicate_share"])),
         ],
-        coverage="the measure of the feed itself",
+        coverage="the measure of the feed itself: {:.1f} % of the scoped frames have the ball "
+                 "observed".format(100.0 * scope["ball_visibility"]),
         confidence="exact — this is a count, not an estimate",
         evidence="frames {:,}-{:,}".format(*analysis.window(window)),
         scope=_scope_text(window, zone, phase),
@@ -749,7 +750,9 @@ def box_presence(analysis: Analysis, window: str = "all", zone: str = None,
     exactly 16 times out of 91; counting its players in the box it defends reproduces it 74
     times out of 91, and lands within one player 90 times out of 91.
     """
-    mask = _scoped_frames(analysis, window, zone, phase)
+    # The claim is about the tagged instances, so its scope is their windows.
+    scope_code = phase or "PLAYERS IN THE BOX"
+    mask = _scoped_frames(analysis, window, zone, scope_code)
     home_right = attacking_sides(analysis)
     length = analysis.pitch_length_m
     width = analysis.pitch_width_m
@@ -809,7 +812,7 @@ def box_presence(analysis: Analysis, window: str = "all", zone: str = None,
                    "rather than instants, so a maximum over a wide window is a generous "
                    "comparison",
         evidence="frames {:,}-{:,}".format(*analysis.window(window)),
-        scope=_scope_text(window, zone, phase),
+        scope=_scope_text(window, zone, scope_code),
         coverage_pct=_coverage_pct(analysis, mask),
     )
 
