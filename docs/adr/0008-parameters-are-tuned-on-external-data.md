@@ -69,6 +69,12 @@ rising on the provided match, but that direction is degenerate — fewer, longer
 trivially more stable — and the external match collapses at 100 frames.) Both matches, the same
 shape, no labels and no video anywhere in the criterion.
 
+The same criterion checked the two dead-ball cleaning thresholds (the shortest dead block
+kept, and the widest gap closed between dead blocks). It does not discriminate them — spell
+survival is 98.0–98.2 % across the whole range and the possession count moves by three —
+which is the point: those thresholds are a robustness measure rather than a fitted parameter,
+and they carry no tuning risk. They stay on their prior of one second and half a second.
+
 ## What this cost, honestly
 
 An earlier configuration had a merge length chosen by comparing variants **on the public five
