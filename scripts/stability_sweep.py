@@ -20,8 +20,8 @@ a team must hold the ball before it counts as a possession — and it needs no l
     geometry produces the same answer whether you can see the ball or not; a merge length that is
     fitting noise produces a different answer every time the tracker blinks.
 
-The criterion is computed on the provided tracking and, independently, on the external sample
-match. Where the two agree, the value is not a fit to anything.
+The criterion is computed on the provided tracking and, independently, on **all three** external
+sample matches. Where they agree, the value is not a fit to anything.
 """
 
 from __future__ import annotations
@@ -138,12 +138,20 @@ def main() -> int:
 
     config = Config()
     data_dir = os.environ.get("MTAH_DATA_DIR", "data")
-    match = load_match(Config(data_dir=data_dir))
-    sweep(match, "provided match (tracking only, no labels, no video)")
+    try:
+        match = load_match(Config(data_dir=data_dir))
+    except FileNotFoundError:
+        print("the provided match is not on this machine; running the external games only")
+    else:
+        sweep(match, "provided match (tracking only, no labels, no video)")
 
-    if et is not None and os.path.isdir(et.SAMPLE_DIR):
-        external_match, _truth = et.build_match(et.SAMPLE_DIR, config)
-        sweep(external_match, "external sample match (tracking only, no labels, no video)")
+    if et is not None and os.path.isdir(et.SAMPLE_ROOT):
+        for game in (1, 2, 3):
+            try:
+                external_match, _truth, _config = et.load_game(game, config)
+            except FileNotFoundError:
+                continue
+            sweep(external_match, "external game {} (tracking only, no labels, no video)".format(game))
     return 0
 
 

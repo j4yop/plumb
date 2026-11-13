@@ -117,25 +117,57 @@ rule means what we think it means. Two examples of what that bought us:
 - Their possession changes happen when the ball is 2–7 m from the new owner, not when they are
   touching it, which is why a radius gate on its own is too strict.
 
+**The external tuning set is three matches**, not one: Metrica's `Sample_Game_1` and
+`Sample_Game_2` (CSV format, 1,745 and 1,935 events) and `Sample_Game_3` (FIFA/EPTS, 3,620
+events), each with an event-derived possession truth. Three games, because the question that
+matters is not what wins on one match but whether the value we shipped is the value the geometry
+supports on more than one. Each match is read with **its own** half boundaries — the competition
+match's windows are meaningless on another match, and applying them marked three thousand
+mid-match frames as a warm-up.
+
+Two honest readings from the three-game sweep (`scripts/external_tuning.py`):
+
+- **`control_radius_m = 2.0` is the best on the mean, but only just.** 1.5 m scores 0.3368 and
+  2.5 m 0.3338 against 2.0's 0.3389 — all inside the noise of 419–514 possessions. The external
+  data does *not* sharply determine the parameter. What it does say is that 2.0 sits on the
+  plateau on all three games and 3.5 m does not, and that 2.0 m is the football definition: the
+  distance at which a ball is under a player's control rather than merely near them.
+- **`min_dwell_frames` has no measurable effect.** 5, 12 and 25 produce *identical* scores on all
+  three external games. It is a safety rail against a one-frame blip becoming a hand-over, not a
+  tuned parameter, and it is set to half a second because that is the shortest span of control
+  that is not a touch.
+
 **A configuration we had shipped earlier was not compliant**, because its merge length had been
-chosen by comparing variants on the public five minutes. It was dropped. The shipped
-configuration scores 0.5000 on the public window — better than that one — and 0.3019 against
-0.2925 on the external match, where tuning is legal.
+chosen by comparing variants on the public five minutes. It was dropped, and the shipped
+configuration scores higher on the public window anyway.
 
 The one parameter the external set could not settle, the merge length, is settled instead by a
 **label-free criterion on the tracking itself**: hide a fifth of the ball observations, recompute,
-and ask how many possessions still exist at the metric's own headline IoU. Below 25 frames, one
-possession in twenty does not survive the tracker blinking, so the boundaries at that resolution
-are drawn by noise; from 25 frames up they are geometrically supported. Both the provided match and
-the external match show the same shape, with no labels and no video anywhere in the criterion.
+and ask how many possessions still exist at the metric's own headline IoU=0.7. Spell survival, on
+the provided match and all three external games:
 
-As a check that covers the whole match, we used the organisers' own Smart Tagging: for 284
-instances it contains an attacking code and a defending code over the *same* interval with
+| merge | provided | game 1 | game 2 | game 3 |
+|---:|---:|---:|---:|---:|
+| 6 | 94.6 % | 95.1 % | 94.8 % | 92.9 % |
+| 12 | 96.7 % | 96.5 % | 96.7 % | 95.3 % |
+| **25** | **98.2 %** | **98.4 %** | **97.7 %** | **97.6 %** |
+| 50 | 98.5 % | 99.6 % | 99.3 % | 99.6 % |
+| 100 | 99.2 % | 98.3 % | 98.6 % | 97.6 % |
+
+Below 25 frames, one possession in twenty-five does not survive the tracker blinking, so the
+boundaries at that resolution are drawn by noise. From 25 frames up, 98 % of the boundaries survive
+on **every one of the four matches** — and past 50 the curve turns over on three of the four,
+which is the degenerate direction. The value is the smallest merge length above which the boundary
+is geometrically supported, and the reading is identical on four independent matches with no
+labels and no video anywhere in the criterion.
+
+As a check that covers the whole match, we used the organisers' own Smart Tagging. For **140**
+windows it contains an attacking code and a defending code over the *same* interval with
 *opposite* teams, so the team in possession during those intervals is known. Our labels agree with
-the tagging on **84.6 %** of the frames of a `BUILD UP` phase and **78.9 %** of a `PROGRESSION`
-phase — the two codes with the cleanest semantics — and the agreement falls to 61.9 % on
-transitions, where the possession genuinely changes. That is a full-match check that uses no
-ground truth and none of the five public minutes.
+it on **77.6 %** of the 65,724 frames those windows cover — 85.7 % on `PROGRESSION`, 83.2 % on
+`BUILD UP` — and the attacking and defending sides of a mirror pair agree to the decimal, which is
+the strongest internal consistency check available. That is a full-match check that uses no
+possession ground truth and none of the five public minutes.
 
 ## 6. The possession rules as implemented
 
@@ -163,12 +195,18 @@ ground truth and none of the five public minutes.
 | `baseline_smooth125` | 0.5812 | 0.4242 | 16 | 18.5 s |
 | **this system** | **0.6878** | **0.5000** | **15** | 18.8 s |
 
-And on the external match, where tuning is legal:
+And on the three external matches, where tuning is legal (each read with its own windows):
 
-| | external spellF1 | external frame accuracy |
-|---|---:|---:|
-| configuration before the external sweep | 0.2925 | 0.5954 |
-| **shipped configuration** | **0.3019** | **0.6021** |
+| game | format | external `spellF1` | external frame accuracy | possessions (truth) |
+|---|---|---:|---:|---:|
+| `Sample_Game_1` | Metrica CSV | **0.3633** | 0.6723 | 170 (419) |
+| `Sample_Game_2` | Metrica CSV | **0.2990** | 0.7261 | 160 (450) |
+| `Sample_Game_3` | FIFA/EPTS | **0.3545** | 0.7806 | 198 (514) |
+
+The external `spellF1` is lower than the competition window's because the external reference
+counts every touch-chain as a possession — 419 to 514 per match, against the ~200 the
+competition's labels imply. The two references define a possession differently, which is why the
+merge length is settled by the label-free criterion rather than by either of them (ADR 0008).
 
 **On the whole match** (our own statistics, which are the only ones we may optimise):
 
