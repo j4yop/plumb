@@ -48,11 +48,16 @@ class Fact:
     evidence: str = ""
     scope: str = ""
     coverage_short: str = ""
+    coverage_pct: Optional[float] = None  # the share of the claim's own scope with the ball seen
 
     def __post_init__(self):
         if not self.coverage_short:
-            head = self.coverage.split(";")[0].split(",")[0].strip()
-            self.coverage_short = head[:34]
+            if self.coverage_pct is not None:
+                self.coverage_short = "{:.1f} % of the scope observed".format(
+                    100.0 * self.coverage_pct)
+            else:
+                head = self.coverage.split(";")[0].split(",")[0].strip()
+                self.coverage_short = head[:34]
 
     def to_dict(self) -> dict:
         return {
@@ -64,6 +69,7 @@ class Fact:
             "coverage": self.coverage,
             "confidence": self.confidence,
             "evidence": self.evidence,
+            "coverage_pct": self.coverage_pct,
         }
 
 
@@ -108,15 +114,39 @@ def _fmt_pct(value: float) -> str:
     return "{:.1f} %".format(100.0 * value)
 
 
+def _scoped_frames(analysis: Analysis, window: str, zone: Optional[str] = None,
+                   phase: Optional[str] = None) -> np.ndarray:
+    """The frames a claim is about: the window, then the zone, then the phase."""
+    from .tactics import tactics_scope
+
+    frames = _window_slice(analysis, window)
+    if zone and zone != "all":
+        frames = frames & tactics_scope(analysis, zone)
+    if phase:
+        frames = frames & phase_frames(analysis, phase)
+    return frames
+
+
+def phase_frames(analysis: Analysis, code: str) -> np.ndarray:
+    """The frames of the Smart Tagging instances with a given code."""
+    frames = np.zeros(analysis.n_frames, dtype=bool)
+    for instance in phase_tools.by_code(analysis.phases, code):
+        lo = max(0, instance.start)
+        hi = min(analysis.n_frames - 1, instance.end)
+        if hi >= lo:
+            frames[lo:hi + 1] = True
+    return frames
+
+
 def _scope_text(window: str, zone: Optional[str] = None, code: Optional[str] = None) -> str:
     """A human phrase for what a claim is about."""
     parts = []
     if code:
         parts.append("the {} phases".format(code.lower()))
-    if window and window != "all":
-        parts.append("in the {}".format(window.replace("-", " ")))
     if zone and zone != "all":
         parts.append("in the {}".format(zone.replace("-", " ")))
+    if window and window != "all":
+        parts.append("in the {}".format(window.replace("-", " ")))
     if not parts:
         return "the whole match"
     return " ".join(parts)
@@ -135,6 +165,23 @@ def _coverage_sentence(analysis: Analysis, frames: np.ndarray) -> str:
     )
 
 
+def _coverage_pct(analysis: Analysis, frames: np.ndarray) -> float:
+    """The share of a claim's own frames in which the ball was observed."""
+    frames = np.asarray(frames, dtype=bool)
+    if not frames.any():
+        return 0.0
+    return float(analysis.evidence.ball_present[frames].mean())
+
+
+def _coverage_pct_range(analysis: Analysis, start: int, stop: int) -> float:
+    """The same, for a half-open range of frames."""
+    stop = min(stop, analysis.n_frames)
+    if stop <= start:
+        return 0.0
+    window = analysis.evidence.ball_present[start:stop]
+    return float(window.mean())
+
+
 def _sensitivity_sentence(analysis: Analysis, frames: np.ndarray, sigma: float = 0.5) -> str:
     """How much of the scope was decided by a thin margin."""
     share = analysis.coverage().sensitivity(frames, sigma)
@@ -149,11 +196,10 @@ def _sensitivity_sentence(analysis: Analysis, frames: np.ndarray, sigma: float =
 # --------------------------------------------------------------------------------------------------
 
 
-def possession_share(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def possession_share(analysis: Analysis, window: str = "all", zone: str = None,
+                    phase: str = None) -> Fact:
     """How much of the window each team had the ball."""
-    alive = _alive_frames(analysis, window)
-    if zone and zone != "all":
-        alive = alive & tactics_scope(analysis, zone)
+    alive = _alive_frames(analysis, window) & _scoped_frames(analysis, window, zone, phase)
     total = int(alive.sum())
     home = int((analysis.labels[alive] == HOME).sum())
     away = int((analysis.labels[alive] == AWAY).sum())
@@ -191,11 +237,13 @@ def possession_share(analysis: Analysis, window: str = "all", zone: str = None) 
             100 * low, 100 * high
         ),
         evidence="frames {:,}-{:,}".format(start, end),
-        scope=_scope_text(window, zone),
+        scope=_scope_text(window, zone, phase),
+        coverage_pct=_coverage_pct(analysis, alive),
     )
 
 
-def possession_count(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def possession_count(analysis: Analysis, window: str = "all", zone: str = None,
+                    phase: str = None) -> Fact:
     """How many possessions the window contains, and how long they run."""
     start, end = analysis.window(window)
     zone_mask = tactics_scope(analysis, zone) if zone and zone != "all" else None
@@ -215,7 +263,7 @@ def possession_count(analysis: Analysis, window: str = "all", zone: str = None) 
             "possession_count",
             "Possessions ({})".format(window),
             "None.",
-            scope=_scope_text(window, zone),
+            scope=_scope_text(window, zone, phase),
         )
 
     return Fact(
@@ -234,11 +282,13 @@ def possession_count(analysis: Analysis, window: str = "all", zone: str = None) 
         confidence="spell boundaries rest on the frames where the ball is observed; "
                    "the count is bounded only by the smoothing rule, not by the data",
         evidence="frames {:,}-{:,}".format(start, end),
-        scope=_scope_text(window, zone),
+        scope=_scope_text(window, zone, phase),
+        coverage_pct=_coverage_pct(analysis, _graded_frames(analysis, window)),
     )
 
 
-def dead_ball(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def dead_ball(analysis: Analysis, window: str = "all", zone: str = None,
+               phase: str = None) -> Fact:
     """How much of the window the ball was not in play."""
     graded = _graded_frames(analysis, window)
     dead = int((analysis.labels[graded] == DEAD).sum())
@@ -264,11 +314,13 @@ def dead_ball(analysis: Analysis, window: str = "all", zone: str = None) -> Fact
         confidence="a conservative test; dead periods where the ball stays visible are not "
                    "detected, so this is a lower bound",
         evidence="frames {:,}-{:,}".format(start, end),
-        scope=_scope_text(window, zone),
+        scope=_scope_text(window, zone, phase),
+        coverage_pct=_coverage_pct(analysis, _graded_frames(analysis, window)),
     )
 
 
-def longest_possession(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def longest_possession(analysis: Analysis, window: str = "all", zone: str = None,
+                     phase: str = None) -> Fact:
     """The longest spell of one team's possession in the window."""
     start, end = analysis.window(window)
     spells = [
@@ -281,7 +333,7 @@ def longest_possession(analysis: Analysis, window: str = "all", zone: str = None
             "longest_possession",
             "Longest possession",
             "None.",
-            scope=_scope_text(window, zone),
+            scope=_scope_text(window, zone, phase),
         )
     a, b, label = max(spells, key=lambda s: s[1] - s[0])
     duration = (b - a) / 25.0
@@ -301,23 +353,24 @@ def longest_possession(analysis: Analysis, window: str = "all", zone: str = None
         coverage="{} frames in the window have no ball observation".format(unobserved),
         confidence="the boundaries are where the tracker last saw the ball with one team",
         evidence="frames {:,}-{:,}".format(a, b),
-        scope=_scope_text(window, zone),
+        scope=_scope_text(window, zone, phase),
+        coverage_pct=_coverage_pct_range(analysis, a, b + 1),
     )
 
 
-def ball_visibility(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def ball_visibility(analysis: Analysis, window: str = "all", zone: str = None,
+                  phase: str = None) -> Fact:
     """The coverage of the tracking itself — the central fact."""
-    graded = _graded_frames(analysis, window)
-    if zone and zone != "all":
-        graded = graded & tactics_scope(analysis, zone)
+    graded = _graded_frames(analysis, window) & _scoped_frames(analysis, window, zone, phase)
     total = int(graded.sum())
     seen = int((analysis.evidence.ball_present & graded).sum())
     share = seen / total if total else 0.0
-    gaps = _longest_gaps(analysis, window)
+    gaps = _longest_gaps(graded, analysis.evidence.ball_present)
     scope = analysis.coverage().scope(graded)
     return Fact(
         id="ball_visibility",
-        title="Tracking coverage ({})".format(window),
+        title="Tracking coverage ({})".format(
+            _scope_text(window, zone, phase) if (zone or phase) else window),
         answer="the ball is observed on {} of the window's graded frames.".format(_fmt_pct(share)),
         detail=[
             ("graded frames", "{:,}".format(total)),
@@ -330,18 +383,18 @@ def ball_visibility(analysis: Analysis, window: str = "all", zone: str = None) -
         coverage="the measure of the feed itself",
         confidence="exact — this is a count, not an estimate",
         evidence="frames {:,}-{:,}".format(*analysis.window(window)),
-        scope=_scope_text(window, zone),
+        scope=_scope_text(window, zone, phase),
+        coverage_pct=scope["ball_visibility"],
     )
 
 
-def _longest_gaps(analysis: Analysis, window: str) -> Tuple[int, float]:
-    """The longest stretch of graded frames with no ball observation."""
-    graded = _graded_frames(analysis, window)
-    missing = graded & ~analysis.evidence.ball_present
+def _longest_gaps(graded: np.ndarray, ball_present: np.ndarray) -> Tuple[int, float]:
+    """The longest stretch of frames in the scope with no ball observation."""
+    missing = graded & ~ball_present
     best_length = 0
     best_start = 0
     run = 0
-    for index in range(analysis.n_frames):
+    for index in range(graded.shape[0]):
         if missing[index]:
             run += 1
             if run > best_length:
@@ -352,7 +405,8 @@ def _longest_gaps(analysis: Analysis, window: str) -> Tuple[int, float]:
     return best_start, best_length / 25.0
 
 
-def possession_changes(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def possession_changes(analysis: Analysis, window: str = "all", zone: str = None,
+                     phase: str = None) -> Fact:
     """How often possession changed hands in the window."""
     start, end = analysis.window(window)
     zone_mask = tactics_scope(analysis, zone) if zone and zone != "all" else None
@@ -382,15 +436,15 @@ def possession_changes(analysis: Analysis, window: str = "all", zone: str = None
         coverage="counted only where the ball is alive and a team is holding it",
         confidence="a change can only be seen where the tracker saw the ball change hands",
         evidence="frames {:,}-{:,}".format(start, end),
-        scope=_scope_text(window, zone),
+        scope=_scope_text(window, zone, phase),
+        coverage_pct=_coverage_pct(analysis, _graded_frames(analysis, window)),
     )
 
 
-def ball_thirds(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def ball_thirds(analysis: Analysis, window: str = "all", zone: str = None,
+                phase: str = None) -> Fact:
     """Where the ball was, in thirds of the pitch, while the game was live."""
-    alive = _alive_frames(analysis, window)
-    if zone and zone != "all":
-        alive = alive & tactics_scope(analysis, zone)
+    alive = _alive_frames(analysis, window) & _scoped_frames(analysis, window, zone, phase)
     if not alive.any():
         return Fact(
             "ball_thirds",
@@ -418,6 +472,7 @@ def ball_thirds(analysis: Analysis, window: str = "all", zone: str = None) -> Fa
         confidence="the position is the tracker's, to the accuracy of the tracking error",
         evidence="frames {:,}-{:,}".format(*analysis.window(window)),
         scope=_scope_text(window, zone),
+        coverage_pct=_coverage_pct(analysis, alive),
     )
 
 
@@ -468,24 +523,27 @@ def _tactic_fact(analysis: Analysis, tactic, window: str, code: str = None) -> F
             int(np.flatnonzero(frames)[-1]) if frames.any() else 0,
         ),
         scope=_scope_text(window, code=code),
+        coverage_pct=scope["ball_visibility"],
     )
 
 
-def build_up(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def build_up(analysis: Analysis, window: str = "all", zone: str = None,
+          phase: str = None) -> Fact:
     """How the team in possession played the ball out."""
-    mask = _window_slice(analysis, window)
+    mask = _scoped_frames(analysis, window, zone, phase)
     tactic = TACTICS["build_up"](analysis, mask, analysis.geometry())
     return _tactic_fact(analysis, tactic, window, code="BUILD UP")
 
 
-def progression(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def progression(analysis: Analysis, window: str = "all", zone: str = None,
+             phase: str = None) -> Fact:
     """How far the ball travelled up the pitch while a team was in possession.
 
     Two numbers, because they answer different questions: **carried** is how far the ball was
     taken up the pitch in total (the sum of the forward steps), and **net** is how much further
     up the pitch the possession finished than it started.
     """
-    mask = _window_slice(analysis, window)
+    mask = _scoped_frames(analysis, window, zone, phase)
     alive = mask & (analysis.labels != DEAD) & analysis.evidence.ball_present
     home_right = attacking_sides(analysis)
     length = analysis.pitch_length_m
@@ -528,23 +586,26 @@ def progression(analysis: Analysis, window: str = "all", zone: str = None) -> Fa
                    "carries the tracker's error".format(agreement),
         evidence="frames {:,}-{:,}".format(*analysis.window(window)),
         scope=_scope_text(window, code="PROGRESSION"),
+        coverage_pct=_coverage_pct(analysis, alive),
     )
 
 
-def creating_chances(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def creating_chances(analysis: Analysis, window: str = "all", zone: str = None,
+                  phase: str = None) -> Fact:
     """How often a possession reached the final third and the box."""
-    mask = _window_slice(analysis, window)
+    mask = _scoped_frames(analysis, window, zone, phase)
     tactic = TACTICS["chance_creation"](analysis, mask, analysis.geometry())
     return _tactic_fact(analysis, tactic, window, code="CREATING CHANCES")
 
 
-def attacking_transition(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def attacking_transition(analysis: Analysis, window: str = "all", zone: str = None,
+                      phase: str = None) -> Fact:
     """What the winning team does in the ten seconds after it wins the ball.
 
     The mirror of :func:`defensive_transition`: where the new owner takes the ball, and how
     quickly.
     """
-    mask = _window_slice(analysis, window)
+    mask = _scoped_frames(analysis, window, zone, phase)
     alive = mask & (analysis.labels != DEAD) & analysis.evidence.ball_present
     home_right = attacking_sides(analysis)
     length = analysis.pitch_length_m
@@ -589,43 +650,49 @@ def attacking_transition(analysis: Analysis, window: str = "all", zone: str = No
                    "the part that was seen".format(agreement),
         evidence="frames {:,}-{:,}".format(*analysis.window(window)),
         scope=_scope_text(window, code="ATTACKING TRANSITION"),
+        coverage_pct=_coverage_pct(analysis, alive),
     )
 
 
-def defensive_transition(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def defensive_transition(analysis: Analysis, window: str = "all", zone: str = None,
+                      phase: str = None) -> Fact:
     """How the defending team reacts to losing the ball.
 
     The counter-press: how often the team that lost it wins it straight back.
     """
-    mask = _window_slice(analysis, window)
+    mask = _scoped_frames(analysis, window, zone, phase)
     tactic = TACTICS["transitions"](analysis, mask, analysis.geometry())
     return _tactic_fact(analysis, tactic, window, code="DEFENSIVE TRANSITION")
 
 
-def defending_shape(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def defending_shape(analysis: Analysis, window: str = "all", zone: str = None,
+                 phase: str = None) -> Fact:
     """The shape of the team that does not have the ball."""
-    mask = _window_slice(analysis, window)
+    mask = _scoped_frames(analysis, window, zone, phase)
     tactic = TACTICS["defending"](analysis, mask, analysis.geometry())
     return _tactic_fact(analysis, tactic, window, code="DEFENDING IN MIDDLE THIRD")
 
 
-def pressing(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def pressing(analysis: Analysis, window: str = "all", zone: str = None,
+          phase: str = None) -> Fact:
     """How the team without the ball presses, and whether the press wins it."""
-    mask = _window_slice(analysis, window)
+    mask = _scoped_frames(analysis, window, zone, phase)
     tactic = TACTICS["pressing"](analysis, mask, analysis.geometry())
     return _tactic_fact(analysis, tactic, window, code="ATTACKING TRANSITION")
 
 
-def restarts(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def restarts(analysis: Analysis, window: str = "all", zone: str = None,
+          phase: str = None) -> Fact:
     """Set pieces: who takes them, and who keeps the ball afterwards."""
-    mask = _window_slice(analysis, window)
+    mask = _scoped_frames(analysis, window, zone, phase)
     tactic = TACTICS["restarts"](analysis, mask, analysis.geometry())
     return _tactic_fact(analysis, tactic, window, code="SET PIECES")
 
 
-def long_ball(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def long_ball(analysis: Analysis, window: str = "all", zone: str = None,
+           phase: str = None) -> Fact:
     """How often the ball was played long, and what came of it."""
-    mask = _window_slice(analysis, window)
+    mask = _scoped_frames(analysis, window, zone, phase)
     alive = mask & (analysis.labels != DEAD) & analysis.evidence.ball_present
     if not alive.any():
         return Fact("long_ball", "Long balls", "No live frames.", scope=_scope_text(window))
@@ -653,10 +720,12 @@ def long_ball(analysis: Analysis, window: str = "all", zone: str = None) -> Fact
                    "carries the tracker's error".format(agreement),
         evidence="frames {:,}-{:,}".format(*analysis.window(window)),
         scope=_scope_text(window, code="LONG BALL"),
+        coverage_pct=_coverage_pct(analysis, alive),
     )
 
 
-def box_presence(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def box_presence(analysis: Analysis, window: str = "all", zone: str = None,
+              phase: str = None) -> Fact:
     """How many players each team had in its own penalty area — against the organisers' own count.
 
     This is the sharpest check in the system, and it is the one that needs no possession labels
@@ -670,7 +739,7 @@ def box_presence(analysis: Analysis, window: str = "all", zone: str = None) -> F
     exactly 16 times out of 91; counting its players in the box it defends reproduces it 74
     times out of 91, and lands within one player 90 times out of 91.
     """
-    mask = _window_slice(analysis, window)
+    mask = _scoped_frames(analysis, window, zone, phase)
     home_right = attacking_sides(analysis)
     length = analysis.pitch_length_m
     width = analysis.pitch_width_m
@@ -731,10 +800,12 @@ def box_presence(analysis: Analysis, window: str = "all", zone: str = None) -> F
                    "comparison",
         evidence="frames {:,}-{:,}".format(*analysis.window(window)),
         scope=_scope_text(window, code="PLAYERS IN THE BOX"),
+        coverage_pct=_coverage_pct(analysis, mask),
     )
 
 
-def annotation_agreement(analysis: Analysis, window: str = "all", zone: str = None) -> Fact:
+def annotation_agreement(analysis: Analysis, window: str = "all", zone: str = None,
+                      phase: str = None) -> Fact:
     """The check that holds the whole thing up.
 
     For every code the organisers tagged, how often do our possession labels agree with their
@@ -775,6 +846,7 @@ def annotation_agreement(analysis: Analysis, window: str = "all", zone: str = No
         evidence="{} instances across {} codes".format(
             len(analysis.phases), len({p.code for p in analysis.phases})),
         scope="the whole match",
+        coverage_pct=pair_result["agreement"],
     )
 
 

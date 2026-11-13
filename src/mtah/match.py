@@ -167,7 +167,7 @@ def parse_meta(meta_path: str) -> Tuple[Tuple[str, str], np.ndarray]:
 class Phase:
     """One Smart Tagging instance: a window of the match, a code, and a team.
 
-    The Smart Tagging file is not only set pieces. It is 638 instances spread over fifteen
+    The Smart Tagging file is not only set pieces. It is 638 instances spread over fourteen
     codes, and the codes are the organisers' own vocabulary for the tactical aspects of the
     match. See ``docs/PROJECT.md``.
 

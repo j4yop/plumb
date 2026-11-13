@@ -2,7 +2,7 @@
 
 What the Smart Tagging file actually contains
 ---------------------------------------------
-It is not just set pieces. It is 638 instances spread over **fifteen codes**, each with a team,
+It is not just set pieces. It is 638 instances spread over **fourteen codes**, each with a team,
 a half, and sometimes more:
 
 ===============================  ====  ================================================

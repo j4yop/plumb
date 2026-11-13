@@ -167,18 +167,43 @@ def _alive(analysis: Analysis, mask: np.ndarray) -> np.ndarray:
     return mask & (analysis.labels != DEAD) & (analysis.labels != 3)
 
 
+def carried_ball(analysis: Analysis) -> np.ndarray:
+    """The last observed ball position, carried forward.
+
+    A frame in which the ball was not tracked still has a *place*: wherever it was last seen.
+    Carrying it forward is what lets a zone claim cover the frames in which the ball was lost —
+    otherwise a zone would only ever contain the frames where the tracker happened to be
+    working, and its coverage would be 100 % by construction, which is a circular claim and
+    not a measurement.
+    """
+    n = analysis.n_frames
+    filled = analysis.ball_xy.copy()
+    last_x = np.nan
+    last_y = np.nan
+    for index in range(n):
+        if np.isfinite(analysis.ball_xy[index, 0]):
+            last_x = analysis.ball_xy[index, 0]
+            last_y = analysis.ball_xy[index, 1]
+        else:
+            filled[index, 0] = last_x
+            filled[index, 1] = last_y
+    return filled
+
+
 def tactics_scope(analysis: Analysis, zone: str) -> np.ndarray:
     """The frames whose ball is in a named zone, relative to the team in possession.
 
     "The final third" means the third the team in possession is attacking into, so the zone is
-    the same question whichever team has the ball.
+    the same question whichever team has the ball. The zone is placed by the *last observed*
+    ball position, so the frames in which the ball was lost are still inside the zone they
+    were lost in.
     """
     from .coverage import zone_mask
 
     home_right = attacking_sides(analysis)
     own_right = np.where(analysis.labels == HOME, home_right, ~home_right)
     return zone_mask(
-        analysis.ball_xy,
+        carried_ball(analysis),
         own_right,
         zone,
         analysis.pitch_length_m,

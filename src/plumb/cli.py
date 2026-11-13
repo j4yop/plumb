@@ -1,10 +1,12 @@
 """The command surface.
 
     plumb ask "where did we lose the ball most in the second half?"
-    plumb coverage
+    plumb coverage --zone attacking-third
+    plumb coverage --phase "BUILD UP"
     plumb why "..."
     plumb close-gap "..."
     plumb ledger
+    plumb run
 
 The output rules exist because this thing is meant to be read by a jury at a distance from a
 screen: one question per screen, colour separating the evidence from the uncertainty, and the
@@ -25,6 +27,7 @@ from mtah.config import AWAY, DEAD, HOME
 
 from .analysis import Analysis, analyse
 from .facts import FACT_LIBRARY, Fact
+from .plan import Plan, plan_for
 from .router import Route, answerable_questions, route
 
 RESET = "\033[0m"
@@ -69,6 +72,8 @@ def render_fact(fact: Fact, style: Style, extra_lines: Optional[List[str]] = Non
     for label, value in fact.detail:
         lines.append("    {}  {}".format(label.ljust(width), value))
     lines.append("")
+    if fact.scope:
+        lines.append("    {}  {}".format("scope".ljust(width), fact.scope))
     lines.append("    {}  {}".format("coverage".ljust(width), fact.coverage))
     lines.append("    {}  {}".format(style.amber("confidence".ljust(width)), fact.confidence))
     lines.append("    {}  {}".format("evidence".ljust(width), fact.evidence))
@@ -97,6 +102,25 @@ def render_refusal(refusal, style: Style) -> str:
     return "\n".join(lines)
 
 
+def render_plan(plan: Plan, style: Style) -> str:
+    """A collection plan: the item, the size of the gap, what it unlocks, and by when."""
+    lines = [
+        "  {}  {}".format(style.cyan("PLAN"), style.bold("what would close this gap")),
+        "  " + _rule(style),
+        "",
+        "    {}  {}".format("collect".ljust(8), plan.collect),
+        "    {}  {}".format("how much".ljust(8), plan.how_much),
+        "    {}  {}".format("unlocks".ljust(8), plan.unlocks),
+    ]
+    if plan.by_when:
+        lines.append("    {}  {}".format("by when".ljust(8), plan.by_when))
+    if plan.steps:
+        lines.append("")
+        for index, step in enumerate(plan.steps, start=1):
+            lines.append("    {}. {}".format(index, step))
+    return "\n".join(lines)
+
+
 def render_unknown(route: Route, style: Style) -> str:
     lines = [
         "  {}  {}".format(style.amber("NO ROUTE"), style.bold("nothing in the library matches that")),
@@ -112,39 +136,43 @@ def render_unknown(route: Route, style: Style) -> str:
     return "\n".join(lines)
 
 
-def render_ledger(analysis: Analysis, style: Style) -> str:
-    """The ledger: one row per fact, with its coverage and its status."""
-    graded = analysis.evidence.graded
-    total = int(graded.sum())
-    seen = int((analysis.evidence.ball_present & graded).sum())
-    feed_coverage = "{:.1f} %".format(100.0 * seen / total) if total else "—"
+def _one_line(text: str) -> str:
+    """The answer as one line, without chopping a decimal in half."""
+    return " ".join(text.split())
 
+
+def render_ledger(analysis: Analysis, style: Style) -> str:
+    """The ledger: one row per claim, with its scope, its coverage, and its status."""
     rows: List[Tuple[str, str, str, str]] = []
     for fact_id, function in FACT_LIBRARY.items():
-        fact = function(analysis, "all")
-        rows.append((fact_id, fact.answer.split(".")[0], feed_coverage, "supported"))
+        try:
+            fact = function(analysis, "all")
+        except Exception as error:  # a broken fact must not hide the rest of the ledger
+            rows.append((fact_id, "could not be computed: {}".format(error), "—", style.red("error")))
+            continue
+        rows.append((fact_id, _one_line(fact.answer), fact.coverage_short, style.green("supported")))
 
     lines = [
         "  {}  {}".format(style.bold("LEDGER"), style.dim("every claim this build makes about the match")),
         "  " + _rule(style),
         "    {}  {}  {}  {}".format(
-            style.dim("fact".ljust(20)), style.dim("value".ljust(38)),
-            style.dim("feed".ljust(10)), style.dim("status")
+            style.dim("fact".ljust(22)), style.dim("value".ljust(46)),
+            style.dim("coverage".ljust(30)), style.dim("status")
         ),
-        style.dim("    feed = the share of graded frames in which the ball is observed at all"),
+        style.dim("    coverage = the share of the claim's own scope in which the ball is observed"),
         "",
     ]
     for fact_id, value, coverage, status in rows:
         lines.append("    {}  {}  {}  {}".format(
-            fact_id.ljust(20), value[:38].ljust(38), coverage.ljust(10),
-            style.green(status)
+            fact_id.ljust(22), value[:46].ljust(46), coverage[:30].ljust(30), status
         ))
     lines.append("")
     lines.append(style.dim("  a claim that cannot be supported would appear here as 'refused'"))
     return "\n".join(lines)
 
 
-def coverage_strip(analysis: Analysis, style: Style, buckets: int = 100) -> str:
+def coverage_strip(analysis: Analysis, style: Style, buckets: int = 100,
+                   frames: Optional[np.ndarray] = None) -> str:
     """The feed's coverage across the match, drawn in the terminal.
 
     Each column is a slice of the match; the height of the block is the share of that slice's
@@ -156,6 +184,8 @@ def coverage_strip(analysis: Analysis, style: Style, buckets: int = 100) -> str:
     graded = analysis.evidence.graded
     seen = analysis.evidence.ball_present
     n = analysis.n_frames
+    if frames is not None:
+        graded = graded & frames
     size = max(1, n // buckets)
     out = []
     for index in range(buckets):
@@ -170,16 +200,52 @@ def coverage_strip(analysis: Analysis, style: Style, buckets: int = 100) -> str:
     return "".join(out)
 
 
-def render_coverage(analysis: Analysis, window: str, style: Style) -> str:
-    fact = FACT_LIBRARY["ball_visibility"](analysis, window)
-    return render_fact(fact, style)
+def _phase_frames(analysis: Analysis, code: str) -> np.ndarray:
+    """The frames of the Smart Tagging instances with a given code."""
+    from . import phases as phase_tools
+
+    frames = np.zeros(analysis.n_frames, dtype=bool)
+    for phase in phase_tools.by_code(analysis.phases, code):
+        lo = max(0, phase.start)
+        hi = min(analysis.n_frames - 1, phase.end)
+        if hi >= lo:
+            frames[lo:hi + 1] = True
+    return frames
+
+
+def render_coverage(analysis: Analysis, window: str, style: Style,
+                    zone: Optional[str] = None, code: Optional[str] = None) -> str:
+    """The coverage of the feed, over whatever scope was asked for."""
+    from .facts import _graded_frames, _window_slice
+    from .tactics import tactics_scope
+
+    frames = _graded_frames(analysis, window)
+    scope_text = "the whole match"
+    if zone and zone != "all":
+        frames = frames & tactics_scope(analysis, zone)
+        scope_text = "the {}".format(zone.replace("-", " "))
+    if code:
+        frames = frames & _phase_frames(analysis, code)
+        scope_text = "the {} phases".format(code.lower())
+
+    fact = FACT_LIBRARY["ball_visibility"](analysis, window, zone, code)
+    fact.scope = scope_text
+    extra = [
+        "    {}  {}".format("the feed".ljust(10), coverage_strip(analysis, style, frames=frames)),
+        "    {}  {}".format(
+            "".ljust(10),
+            "each column is about {:,} frames; the height is the share of frames in which "
+            "the ball is observed".format(max(1, analysis.n_frames // 100)),
+        ),
+    ]
+    return render_fact(fact, style, extra_lines=extra)
 
 
 def _ask(analysis: Analysis, question: str, style: Style, as_json: bool) -> int:
     route_ = route(question)
 
     if route_.kind == "fact":
-        fact = FACT_LIBRARY[route_.id](analysis, route_.window)
+        fact = FACT_LIBRARY[route_.id](analysis, route_.window, route_.zone, route_.phase)
         if as_json:
             print(json.dumps({"status": "supported", "question": question, **fact.to_dict()}, indent=2))
         else:
@@ -205,7 +271,7 @@ def _why(analysis: Analysis, question: str, style: Style, as_json: bool) -> int:
     """Why the answer holds — or why it cannot."""
     route_ = route(question)
     if route_.kind == "fact":
-        fact = FACT_LIBRARY[route_.id](analysis, route_.window)
+        fact = FACT_LIBRARY[route_.id](analysis, route_.window, route_.zone, route_.phase)
         if as_json:
             print(json.dumps({"status": "supported", "question": question, **fact.to_dict()}, indent=2))
         else:
@@ -228,34 +294,29 @@ def _why(analysis: Analysis, question: str, style: Style, as_json: bool) -> int:
 def _close_gap(analysis: Analysis, question: str, style: Style, as_json: bool) -> int:
     """What would have to be collected to answer a question we cannot answer."""
     route_ = route(question)
-    if route_.kind == "refusal":
-        refusal = route_.detail
+    plan = plan_for(analysis, route_)
+
+    if as_json:
         payload = {
-            "status": "refused",
+            "status": "refused" if route_.kind == "refusal" else "supported",
             "question": question,
-            "missing": refusal.missing,
-            "remedy": refusal.remedy,
-            "proxy": refusal.proxy,
+            **plan.to_dict(),
         }
-        if as_json:
-            print(json.dumps(payload, indent=2))
-        else:
-            print(render_refusal(refusal, style))
-            print("")
-            print(style.bold("  TO CLOSE THIS GAP"))
-            print("    {}  {}".format(style.dim("collect"), refusal.missing))
-            print("    {}  {}".format(style.dim("then"), "the same question becomes answerable, "
-                                                         "with the same evidence packet"))
+        if route_.kind == "refusal":
+            payload["refusal"] = route_.detail.to_dict()
+        print(json.dumps(payload, indent=2))
         return 0
 
-    fact = FACT_LIBRARY["ball_visibility"](analysis, route_.window)
-    if as_json:
-        print(json.dumps({"status": "supported", "question": question, **fact.to_dict()}, indent=2))
-    else:
-        print(render_fact(fact, style))
+    if route_.kind == "refusal":
+        print(render_refusal(route_.detail, style))
         print("")
-        print(style.bold("  TO CLOSE THIS GAP"))
-        print("    {}  {}".format(style.dim("collect"), "nothing — this one is already answerable"))
+        print(render_plan(plan, style))
+        return 0
+
+    fact = FACT_LIBRARY[route_.id](analysis, route_.window, route_.zone, route_.phase)
+    print(render_fact(fact, style))
+    print("")
+    print(render_plan(plan, style))
     return 0
 
 
@@ -274,15 +335,40 @@ def build_parser() -> argparse.ArgumentParser:
     ask = sub.add_parser("ask", help="ask a question about the match")
     ask.add_argument("question")
     ask.add_argument("--window", default=None, help="first-half | second-half | halftime | all")
-    sub.add_parser("coverage", help="how much of the match the tracking can carry")
-    sub.add_parser("ledger", help="every claim this build makes, with its coverage")
+    ask.add_argument("--zone", default=None, help="the part of the pitch the claim is about")
+    ask.add_argument("--phase", default=None, help="a Smart Tagging code, e.g. 'BUILD UP'")
     why = sub.add_parser("why", help="why the answer holds, or why it cannot")
     why.add_argument("question")
+    why.add_argument("--window", default=None, help="first-half | second-half | halftime | all")
+    why.add_argument("--zone", default=None, help="the part of the pitch the claim is about")
+    why.add_argument("--phase", default=None, help="a Smart Tagging code, e.g. 'BUILD UP'")
     close = sub.add_parser("close-gap", help="what would have to be collected to answer it")
     close.add_argument("question")
+    close.add_argument("--window", default=None, help="first-half | second-half | halftime | all")
+    close.add_argument("--zone", default=None, help="the part of the pitch the claim is about")
+    close.add_argument("--phase", default=None, help="a Smart Tagging code, e.g. 'BUILD UP'")
+    coverage = sub.add_parser("coverage", help="how much of the match the tracking can carry")
+    coverage.add_argument("--window", default="all", help="first-half | second-half | halftime | all")
+    coverage.add_argument("--zone", default=None, help="the part of the pitch the claim is about")
+    coverage.add_argument("--phase", default=None, help="a Smart Tagging code, e.g. 'BUILD UP'")
+    sub.add_parser("ledger", help="every claim this build makes, with its coverage")
     run = sub.add_parser("run", help="regenerate the submission and the cache")
     run.add_argument("--out", default="artifacts/submission.csv")
     return parser
+
+
+def _scoped_question(args, question: str) -> str:
+    """Fold an explicit window or zone into the question, so the router sees it."""
+    additions = []
+    if getattr(args, "window", None):
+        additions.append("in the {} half".format(args.window))
+    if getattr(args, "zone", None):
+        additions.append("in the {}".format(args.zone.replace("-", " ")))
+    if getattr(args, "phase", None):
+        additions.append("{} phase".format(args.phase.lower()))
+    if additions:
+        return "{} {}".format(question, " ".join(additions))
+    return question
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -315,34 +401,23 @@ def main(argv: Optional[List[str]] = None) -> int:
     analysis = analyse(config, use_cache=not args.no_cache)
 
     if args.command == "ask":
-        question = args.question
-        if getattr(args, "window", None):
-            from .router import Route  # noqa: F401
-            question = "{} in the {} half".format(question, args.window)
-        return _ask(analysis, question, style, args.as_json)
+        return _ask(analysis, _scoped_question(args, args.question), style, args.as_json)
     if args.command == "why":
-        return _why(analysis, args.question, style, args.as_json)
+        return _why(analysis, _scoped_question(args, args.question), style, args.as_json)
     if args.command == "close-gap":
-        return _close_gap(analysis, args.question, style, args.as_json)
+        return _close_gap(analysis, _scoped_question(args, args.question), style, args.as_json)
     if args.command == "coverage":
-        fact = FACT_LIBRARY["ball_visibility"](analysis, "all")
         if args.as_json:
+            fact = FACT_LIBRARY["ball_visibility"](analysis, args.window, args.zone, args.phase)
             print(json.dumps(fact.to_dict(), indent=2))
         else:
-            strip = coverage_strip(analysis, style)
-            extra = [
-                "    {}  {}".format("the feed".ljust(10), strip),
-                "    {}  {}".format(
-                    "".ljust(10),
-                    "each column is about {:,} frames; the height is the share of frames in "
-                    "which the ball is observed".format(max(1, analysis.n_frames // 100)),
-                ),
-            ]
-            print(render_fact(fact, style, extra_lines=extra))
+            print(render_coverage(analysis, args.window, style, args.zone, args.phase))
         return 0
     if args.command == "ledger":
         if args.as_json:
-            payload = [FACT_LIBRARY[f](analysis, "all").to_dict() for f in FACT_LIBRARY]
+            payload = [
+                FACT_LIBRARY[f](analysis, "all").to_dict() for f in FACT_LIBRARY
+            ]
             print(json.dumps(payload, indent=2))
         else:
             print(render_ledger(analysis, style))
