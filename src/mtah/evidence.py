@@ -187,16 +187,39 @@ def build_evidence(match, config: Config, teams: np.ndarray = None) -> Evidence:
     # The test is deliberately conservative. Measured against the organisers' labels, "the ball is
     # not tracked and almost nobody is running" identifies dead ball with 96% precision, while a
     # false dead-ball period is the expensive mistake: it splits a real possession in two.
+    #
+    # *When* the dead period begins is a separate question, and the organisers asked it outright.
+    # The onset rule is a configuration value, because the answer has to be applied in one edit
+    # rather than a rewrite: `movement` (the default) is the whistle, `ball_out` is the ball
+    # leaving the pitch, and `earliest` is the most inclusive.
     absence = np.full(n, BALL_OBSERVED, dtype=np.int8)
     for frame in range(n):
         if ball_present[frame]:
             continue
         if warmup[frame]:
             absence[frame] = WARMUP
-        elif moving[frame] <= config.dead_movers:
-            absence[frame] = OUT_OF_PLAY if out_of_play[frame] else STOPPAGE
-        else:
-            absence[frame] = OCCLUSION
+            continue
+        stopped = moving[frame] <= config.dead_movers
+        out = bool(out_of_play[frame])
+        if config.dead_onset == "ball_out":
+            if out:
+                absence[frame] = OUT_OF_PLAY
+            elif stopped:
+                absence[frame] = STOPPAGE
+            else:
+                absence[frame] = OCCLUSION
+        elif config.dead_onset == "earliest":
+            if out:
+                absence[frame] = OUT_OF_PLAY
+            elif stopped:
+                absence[frame] = STOPPAGE
+            else:
+                absence[frame] = OCCLUSION
+        else:  # "movement" — the default
+            if stopped:
+                absence[frame] = OUT_OF_PLAY if out else STOPPAGE
+            else:
+                absence[frame] = OCCLUSION
 
     dead = np.isin(absence, (STOPPAGE, OUT_OF_PLAY, WARMUP))
 

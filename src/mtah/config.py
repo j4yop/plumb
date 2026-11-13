@@ -99,6 +99,28 @@ class Config:
     # so comparing a system that emits dead frames against a reference that has none would
     # measure the definitions, not the parameters.
     dead_detection: bool = True
+    # --- when does the dead period begin? ----------------------------------------------------------
+    #
+    # The organisers' clarification email asks this outright: *"does D begin at the infringement,
+    # at the whistle, or at the tracking's own flag?"* The ground truth is built from the
+    # organisers' **corrected** tracking, whose dead-ball flag we do not have, so the onset has to
+    # be inferred from what we can see. Three rules are implemented, and the answer selects one.
+    #
+    # ``movement``
+    #     The default. A dead period is a period in which the ball is not tracked *and* the
+    #     players have stopped. This is closest to the whistle, and it is deliberately late: a
+    #     false dead-ball period splits a real possession in two.
+    # ``ball_out``
+    #     The ball's last observed position was outside the pitch. Earlier than the whistle, and
+    #     independent of what the players are doing.
+    # ``earliest``
+    #     Either of the above fires. The most inclusive rule, and the closest to the
+    #     infringement.
+    #
+    # The default stays ``movement`` until the organisers answer; the other two are measured
+    # against the Smart Tagging's mirror pairs, which state who had the ball and involve no
+    # possession ground truth. See docs/adr/0010-when-does-dead-ball-begin.md.
+    dead_onset: str = "movement"
     # How few players may be running for the match to count as stopped. Measured against the
     # organisers' labels: "the ball is untracked and at most this many players are running" is a
     # 96%-precise dead-ball test, and a false dead-ball period is the expensive mistake because it
