@@ -177,7 +177,130 @@ And on the external match, where tuning is legal:
 - 135 dead-ball spells, 1,950 s of dead time.
 - Ball observed on 56.94 % of all frames and 59.31 % of the graded ones.
 
-## 8. Limitations
+## 8. The reliability engine, and the claims that rest on it
+
+Everything above is the possession engine. Everything below is what was built on top of it for the
+Innovation Challenge, and it is the part that makes the project a *checking* tool rather than a
+labelling tool.
+
+### 8.1 The engine
+
+Four per-frame observations, all automatic checks on the provided tracking:
+
+| observation | what it catches |
+|---|---|
+| `ball_seen` | the ball is not observed at all |
+| `ball_stable` | the ball jumped: a re-acquisition is a discontinuity of more than three metres |
+| `no_duplicates` | two players of one team inside 1.5 m — the tracker counting one player twice |
+| `full_pitch` | fewer than eighteen players visible, which is not what a real match looks like |
+
+Their product is a **support score** per frame. On top of it:
+
+- the **decision margin**, |d_home − d_away|, which says how close the nearest-player call was;
+- the **sensitivity**, the share of the scoped frames decided by a margin thinner than a tracking
+  error. If a fifth of the frames in a claim were decided by half a metre, then half a metre of
+  error moves the answer, and that is a statement about the claim rather than a caveat attached
+  to it.
+
+Nothing here is fitted. The thresholds are physical: a re-acquisition is a jump of more than three
+metres, two players of one team inside a metre and a half are the same player counted twice, and a
+real match has twenty-two players on the pitch.
+
+### 8.2 The scope, and why the zones are placed by the last known ball
+
+A claim is covered by **its own frames**, not by the match's. The scope is the window, the zone,
+the tactical phase, or any combination.
+
+One detail makes the difference between a measurement and a tautology. A zone is placed by the
+**last observed ball position, carried forward**. Without that, a zone would only ever contain the
+frames in which the tracker happened to be working, and its coverage would be 100 % *by
+construction* — a circular claim that looks like a perfect one. With it:
+
+| scope | coverage |
+|---|---:|
+| the whole match | 59.3 % |
+| the attacking third | **52.1 %** |
+| the `BUILD UP` phases | **92.7 %** |
+
+The final third is materially worse covered than the match, and the build-up phases materially
+better. Neither is visible to a global coverage score, and both change what a club should do.
+
+### 8.3 The validation source: the organisers' own annotation
+
+The Smart Tagging is not only set pieces. It is **638 instances over fourteen codes**, and it is
+the organisers' own vocabulary for the tactical aspects of the match:
+
+`BUILD UP` · `PROGRESSION` · `CREATING CHANCES` · `LONG BALL` · `ATTACKING TRANSITION` ·
+`DEFENSIVE TRANSITION` · `DEFENDING IN MIDDLE THIRD` · `DEFENDING IN DEFENSIVE THIRD` ·
+`DEFENDING IN ATTACKING THIRD` · `PLAYERS IN THE BOX` · `BALL IN FINAL THIRD` ·
+`BALL IN THE BOX` · `SET PIECES` · `GOALS`
+
+For **140** windows it pairs an attacking code with a defending code over the same interval and
+opposite teams — `PROGRESSION` for Barcelona and `DEFENDING IN MIDDLE THIRD` for Athletic Club over
+one window. The team named by the attacking code therefore had the ball during that window. That
+is a possession statement the organisers made themselves, and it is checkable **without any
+possession ground truth**.
+
+| check | result |
+|---|---:|
+| agreement over the 140 mirror pairs | **77.6 %** of 65,724 frames |
+| agreement on `PROGRESSION` phases | 85.7 % of 30,507 frames |
+| agreement on `BUILD UP` phases | 83.2 % of 10,677 frames |
+| the attacking and defending sides of a mirror pair | agree to the decimal |
+| `Max Players in the box` reproduced **exactly** | **74 of 91** instances |
+| `Max Players in the box` reproduced **within one player** | **90 of 91** instances |
+
+The last row needed a measurement rather than a guess. "Max Players in the box" is the
+**defending** team's count — its own players in its own penalty area. Counting the tagged team's
+players in the box it *attacks* reproduces the organisers' number exactly 16 times out of 91;
+counting its players in the box it *defends* reproduces it 74 times out of 91.
+
+This is not tuning against ground truth. The Smart Tagging is provided data, the rules explicitly
+allow it as input, and no parameter of the possession engine is fitted to it. The check runs
+*after* the labels exist, as a measurement of them.
+
+### 8.4 The claims
+
+Eighteen facts, each a deterministic function of the committed code and the raw tracking, each
+carrying a scope, a coverage number, a confidence statement and the frames it rests on. The
+tactical ones are keyed to the codes above:
+
+| fact | what it measures |
+|---|---|
+| `build_up` | line height, options within 20 m of the carrier, how deep the ball is |
+| `progression` | how far the ball was carried up the pitch, and the net gain |
+| `creating_chances` | entries into the final third and into the penalty area |
+| `pressing` | press numbers, closing speed, and whether the press won the ball back |
+| `defending_shape` | block width, line height, the biggest gap, the pressure distance |
+| `attacking_transition` | what the winning team does with it |
+| `defensive_transition` | the counter-press: how often the ball is won straight back |
+| `restarts` | set pieces taken, kept, and lost within three seconds |
+| `long_ball` | how often the ball was played long |
+| `box_presence` | players in the box, against the organisers' own count |
+
+The attack direction is **read from the data**, not assumed: in each half the two teams' players
+have a mean x, and the team that spends more of the half in the right half of the pitch is the one
+attacking that way. The two teams' means are tens of metres apart, and the reading flips at half
+time, as it must.
+
+### 8.5 The refusals and the collection plans
+
+Every refusal carries four things: **why** the data cannot support the question, **what is
+missing**, the **remedy**, and the **nearest answerable proxy**. `plumb close-gap` turns a refusal
+into a **collection plan** with the gap measured rather than described:
+
+```
+    collect   the ball positions for the frames the tracker did not produce
+    how much  64,643 frames (40.7% of the graded ones), in blackouts of up to 221.5 seconds
+    unlocks   possession inside the blackouts; every other fact in this build already
+              stops at the edge of them
+    by when   the organisers' corrected tracking export, which repairs the same gaps
+```
+
+A refusal without a remedy is a dead end, and the jury reads it as a limitation rather than a
+product. This is the piece of work the club takes away.
+
+## 9. Limitations
 
 - **Dead-ball recall is low, by choice.** We recover about 28 % of the organisers' dead-ball
   frames. The ground truth's dead flag is a property of the *corrected* tracking, which we do not
@@ -192,11 +315,17 @@ And on the external match, where tuning is legal:
   slot→team map from the data: spatial-neighbour voting recovers a left/right partition of the
   pitch rather than two teams. The metadata assignment is used as it stands.
 - **Everything is one match.** A possession rate of 3.4 per minute of play is what this match
-  looks like; another match may differ.
+  looks like; another match may differ. The ten-match dataset is what will settle it.
 - **The possession share assumes the metadata's team order**, which the organisers document as
   the FIFA/EPTS convention, and which the public window confirms.
+- **The tactical shapes are measured on the frames the tracker saw.** A player the tracker has
+  lost is not in the shape, and a track slot that has swapped identity would distort it. The
+  confidence line on every tactical fact says so.
+- **The Smart Tagging is a set of wide priors, not instants.** Its windows are tens of seconds
+  long, so the agreement figures above are measured over generous windows and are a lower bound on
+  what a precise comparison would give.
 
-## 9. Reproduction
+## 10. Reproduction
 
 ```bash
 git clone <this repository> && cd mtah2027
@@ -204,7 +333,7 @@ pip install -r requirements.txt
 export MTAH_DATA_DIR=/path/to/the/unpacked/bundle
 make reproduce        # artifacts/submission.csv
 make validate         # the official checks
-make test             # 103 tests
+make test             # 158 tests
 ```
 
 The repository contains the code, the pinned dependencies and the documentation. It does **not**
@@ -212,4 +341,6 @@ contain the match data, which is licensed and not redistributable: `MANIFEST.sha
 checksums so a reviewer can verify their own download.
 
 Runtime is about three seconds on one core, CPU only, numpy only. There is no randomness
-anywhere in the pipeline, so the output is byte-for-byte reproducible.
+anywhere in the pipeline, so the output is byte-for-byte reproducible. The claims engine adds
+about six seconds on top, all of it vectorised and chunked so the peak memory stays under half a
+gigabyte.

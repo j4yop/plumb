@@ -77,6 +77,57 @@ The name is a promise. Three things must be true by 14 January, and each has a k
    *Kill:* a refusal with no remedy is a dead end, and the jury reads it as a limitation rather
    than a product.
 
+## Where the three stand
+
+They are met, and the evidence is in the repository rather than in a promise.
+
+### 1. Claim-scoped coverage — met
+
+`src/plumb/coverage.py` computes a **per-frame support score** from four automatic checks on the
+tracking (the ball seen, the ball not jumped, no duplicate players, a full pitch on screen), plus
+the **decision margin** and the **sensitivity** — the share of the scoped frames decided by a
+margin thinner than a tracking error. Every fact reports the coverage of *its own* frames.
+
+The zones are placed by the **last observed ball position**, carried forward. That detail is the
+difference between a measurement and a tautology: without it, a zone would only ever contain the
+frames in which the tracker happened to be working, and its coverage would be 100 % by
+construction. With it:
+
+| scope | coverage |
+|---|---:|
+| the whole match | 59.3 % |
+| the attacking third | **52.1 %** |
+| the `BUILD UP` phases | **92.7 %** |
+
+The final third is materially worse covered than the match, and the build-up phases are
+materially better. Neither fact is visible to a global coverage score, and both change what a
+club should do.
+
+### 2. Every claim carries its own evidence — met
+
+Eighteen facts, every one of them a deterministic function of the committed code and the raw
+tracking, each carrying a scope, a coverage number, a confidence statement and the frames it rests
+on. `plumb ledger` lists them; `plumb ask --json` emits one as a machine-readable packet.
+
+**The validation source is the organisers' own annotation.** The Smart Tagging is not only set
+pieces — it is 638 instances over fourteen codes, and for 140 windows it pairs an attacking code
+with a defending code over the same interval and opposite teams. That states who had the ball
+without any possession ground truth being involved.
+
+- our possession labels agree with it on **77.6 %** of the frames those 140 pairs cover;
+- **85.7 %** on progressions, **83.2 %** on build-ups;
+- we reproduce the organisers' own `Max Players in the box` count **exactly in 74 of 91** tagged
+  instances, and within one player in **90**.
+
+ADR 0009 has the detail, including how the reading of that last annotation was settled by
+measurement rather than by guess.
+
+### 3. Every refusal carries a remedy — met
+
+`plumb close-gap` returns a **collection plan** with the gap measured rather than described:
+*64,643 frames (40.7 % of the graded ones), in blackouts of up to 221.5 seconds*. The plan names
+the item, the size of the gap, what it unlocks, when it could arrive, and the steps.
+
 ## The build order
 
 ```
@@ -94,10 +145,23 @@ by a human, checkable by a script, and the thing a club would actually take away
 ## The interface
 
 ```
-plumb ask "<question>"        # the answer, with its evidence
-plumb ask --json "<question>" # the same, machine-readable
-plumb coverage --window ...   # what the tracking can and cannot carry
-plumb why "<question>"        # why the answer holds, or why it cannot
-plumb close-gap "<question>"  # what would have to be collected to answer it
-plumb ledger                  # metric | coverage | supported or refused | evidence frames
+plumb ask "<question>"                     # the answer, with its evidence
+plumb ask --json "<question>"              # the same, machine-readable
+plumb ask "<question>" --zone attacking-third   # the same question, about a part of the pitch
+plumb ask "<question>" --phase "BUILD UP"  # the same question, about a tactical phase
+plumb coverage                             # what the tracking can and cannot carry
+plumb coverage --zone attacking-third      # ...and for one part of the pitch
+plumb coverage --phase "BUILD UP"          # ...and for one tactical phase
+plumb why "<question>"                     # why the answer holds, or why it cannot
+plumb close-gap "<question>"               # what would have to be collected to answer it
+plumb ledger                               # metric | coverage | supported or refused | evidence
 ```
+
+## The next three weeks
+
+| when | what |
+|---|---|
+| **now → 25 Nov** | the fact library is built; the next work is **the ten-match dataset** — the method has to run on every match, and the ten-match ledger is the artefact the club actually takes |
+| **26 Nov** | the briefs land. Point the library at the aspect the organisers name; the aspect is their choice, not ours |
+| **26 Nov → 14 Jan** | the ledger across ten matches, the per-match coverage, and the interface that renders it |
+| **14 Jan → 2 Mar** | the recorded fallback, the slides, and the rehearsal on someone else's laptop |

@@ -34,7 +34,11 @@ reads as a script. The verb is the name: you *plumb* a claim.
 ```
 plumb ask "where did we lose the ball most in the second half?"   # the answer, with its evidence
 plumb ask --json "..."                                           # the same, machine-readable
-plumb coverage --window second-half                              # what the tracking can and cannot carry
+plumb ask "..." --zone attacking-third                            # the same question, about a part of the pitch
+plumb ask "..." --phase "BUILD UP"                               # the same question, about a tactical phase
+plumb coverage                                                   # what the tracking can and cannot carry
+plumb coverage --zone attacking-third                            # ...and for one part of the pitch
+plumb coverage --phase "BUILD UP"                                # ...and for one tactical phase
 plumb why "..."                                                 # why the answer holds, or why it cannot
 plumb close-gap "..."                                           # what would have to be collected to answer it
 plumb ledger                                                    # metric | coverage | supported or refused | evidence frames
@@ -55,9 +59,9 @@ Output rules for the stage, because this is the part that gets rehearsed:
 |---|---|
 | **0:00–0:40** | A question, answered live, with the evidence packet: frames counted, coverage, confidence band, the frames it rests on. Fast, confident, no preamble. |
 | **0:40–2:30** | **The refusal.** A question the other finalists would answer confidently and wrongly — per-player attribution (there are no identities), or the shape of the second half's possession (that needs the private, corrected ground truth). The system declines, names the exact missing fields and where they would come from, and offers the nearest answerable proxy with its own weaker coverage. |
-| **2:30–3:30** | Coverage as the *proof behind* the refusal, not as the opening slide: the 41 %, the two stoppages, the warm-up, the identity problem. The broken feed is now the reason the tool exists. |
-| **3:30–4:20** | **Close-gap:** what would have to be collected for the refused question to become answerable. A refusal with a remedy is a roadmap, not a wall. |
-| **4:20–5:00** | **Determinism.** Re-run the identical query with the network off and show byte-identical output. The last thing on screen is proof that the number and the refusal came from one reproducible artefact. |
+| **2:30–3:30** | Coverage as the *proof behind* the refusal, not as the opening slide: the 41 %, the two stoppages, the warm-up, the identity problem. The broken feed is now the reason the tool exists. **And then the scope: the same coverage asked about the final third (52.1 %) and about the build-up phases (92.7 %).** The tool is not reporting one number about the match; it is reporting the number that belongs to the claim. |
+| **3:30–4:20** | **Close-gap:** what would have to be collected for the refused question to become answerable, with the gap measured — *64,643 frames, 40.7 % of the graded ones, in blackouts of up to 221.5 seconds*. A refusal with a remedy is a roadmap, not a wall. |
+| **4:20–5:00** | **The validation, then determinism.** The organisers' own phase annotation says who had the ball over 140 mirror-paired windows; we agree with it on 77.6 % of those frames, and we reproduce their own count of players in the box exactly 74 times out of 91. Then re-run the identical query with the network off and show byte-identical output. |
 
 Say the constraint out loud, once, in the first beat: *this data never leaves the laptop; the
 reasoning is deterministic; every answer ships its sources.* It is the credibility beat and it
@@ -83,13 +87,22 @@ replay it.* It is never presented as the demo.
       to the other side. It is a hole in the claim, measured rather than assumed.
 - [x] The ledger: one row per claim, with the feed's coverage and the claim's status.
 
+**Built now (the Phase 2 build, the body of the demo):**
+- [x] The **claim-scoped coverage model**: per-frame support from four automatic checks, the
+      decision margin, and the sensitivity — measured over the frames the claim rests on, with
+      the zones placed by the last observed ball position so the coverage is not circular.
+- [x] The fact library **extended beyond possession** to eighteen claims: restarts, pressing,
+      build-up, progression, chance creation, defending shape, transitions, long balls, players
+      in the box — each keyed to the organisers' own Smart Tagging codes.
+- [x] **A refusal whose remedy is a collection plan**, with the gap measured in frames and
+      seconds rather than described.
+- [x] The **validation against the organisers' own annotation**: 77.6 % agreement over 140
+      mirror-paired windows, and 74 of 91 exact matches on their own count of players in the box.
+- [x] Thirty new tests. 158 in all.
+
 **Still to build (the Innovation Challenge window, 26 Nov – 14 Jan):**
-- [ ] The claim-scoped coverage model, validated on the ten-match dataset. The current coverage is
-      per window; the refusal must be per claim.
-- [ ] The fact library extended beyond possession to restarts, pressing, build-up, defending,
-      transitions and chance creation.
-- [ ] A refusal whose remedy is a *collection plan* — "three of eight matches lack that zone" —
-      rather than a description of what is missing.
+- [ ] The claim-scoped coverage model **re-run across all ten matches**, and the ledger extended
+      to every match. The club's artefact is the ten-match ledger, not this match's.
 - [ ] The recorded session, generated from the committed path against a pinned snapshot.
 - [ ] Four slides: the problem, the coverage, the refusal, the ledger.
 - [ ] A rehearsal on a machine that is not the presenter's, with the fallback loaded and ready.
