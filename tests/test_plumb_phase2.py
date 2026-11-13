@@ -6,6 +6,8 @@ itself — that a scope really narrows the claim, that a refusal really comes wi
 that the engine's numbers are the ones it says they are.
 """
 
+import os
+
 import numpy as np
 import pytest
 
@@ -19,6 +21,22 @@ from mtah.config import AWAY, HOME
 
 from test_plumb import build_analysis
 
+# The competition bundle is licensed and is not in the repository, so the tests that need it
+# have to skip rather than fail when it is absent.
+BUNDLE = "data/tactical/BAR-ATH_tactical_smart_tagging.xml"
+
+
+def _bundle() -> list:
+    """The Smart Tagging instances, or a skip when the bundle is not on this machine."""
+    from mtah.match import parse_phases
+
+    if not os.path.isfile(BUNDLE):
+        pytest.skip("the competition bundle is not on this machine")
+    parsed = parse_phases(BUNDLE)
+    if not parsed:
+        pytest.skip("the competition bundle is not on this machine")
+    return parsed
+
 
 @pytest.fixture(scope="module")
 def analysis() -> Analysis:
@@ -30,15 +48,9 @@ def analysis() -> Analysis:
 # --------------------------------------------------------------------------------------------------
 
 
-def test_the_annotation_is_read_as_fifteen_codes():
+def test_the_annotation_is_read_as_fourteen_codes():
     """The Smart Tagging is not only set pieces, and the tool has to know that."""
-    from mtah.match import parse_phases
-
-    path = "data/tactical/BAR-ATH_tactical_smart_tagging.xml"
-    try:
-        parsed = parse_phases(path)
-    except OSError:
-        pytest.skip("the competition bundle is not on this machine")
+    parsed = _bundle()
     assert len(parsed) == 638
     codes = {phase.code for phase in parsed}
     assert len(codes) == 14
@@ -50,14 +62,7 @@ def test_the_annotation_is_read_as_fifteen_codes():
 
 def test_a_defending_code_is_the_mirror_of_an_attacking_one():
     """The pairs are what let the annotation be used as a check without ground truth."""
-    from mtah.match import parse_phases
-
-    path = "data/tactical/BAR-ATH_tactical_smart_tagging.xml"
-    try:
-        parsed = parse_phases(path)
-    except OSError:
-        pytest.skip("the competition bundle is not on this machine")
-    pairs = phases.mirror_pairs(parsed)
+    pairs = phases.mirror_pairs(_bundle())
     assert len(pairs) > 100
     for attack, defence in pairs:
         assert phases.team_index(attack.team) >= 0
@@ -191,14 +196,7 @@ def test_a_phase_scope_selects_the_tagged_frames(analysis):
 
 def test_a_phase_scope_uses_the_organisers_own_windows():
     """On the real match, the scope is the annotation's windows."""
-    from mtah.match import parse_phases
-
-    path = "data/tactical/BAR-ATH_tactical_smart_tagging.xml"
-    try:
-        parsed = parse_phases(path)
-    except OSError:
-        pytest.skip("the competition bundle is not on this machine")
-    build_up = phases.by_code(parsed, "BUILD UP")
+    build_up = phases.by_code(_bundle(), "BUILD UP")
     assert build_up
     span = sum(phase.end - phase.start for phase in build_up)
     assert span > 0
