@@ -57,7 +57,7 @@ def _rule(style: Style, character: str = "─", width: int = 62) -> str:
     return style.dim(character * width)
 
 
-def render_fact(fact: Fact, style: Style) -> str:
+def render_fact(fact: Fact, style: Style, extra_lines: Optional[List[str]] = None) -> str:
     """A supported answer: the claim, the grounds, the provenance."""
     lines = [
         "  {}  {}".format(style.green("SUPPORTED"), style.bold(fact.title)),
@@ -67,11 +67,14 @@ def render_fact(fact: Fact, style: Style) -> str:
     ]
     width = max((len(label) for label, _ in fact.detail), default=0)
     for label, value in fact.detail:
-        lines.append("    {}  {}".format(style.dim(label.ljust(width)), value))
+        lines.append("    {}  {}".format(label.ljust(width), value))
     lines.append("")
-    lines.append("    {}  {}".format(style.dim("coverage".ljust(width)), fact.coverage))
+    lines.append("    {}  {}".format("coverage".ljust(width), fact.coverage))
     lines.append("    {}  {}".format(style.amber("confidence".ljust(width)), fact.confidence))
-    lines.append("    {}  {}".format(style.dim("evidence".ljust(width)), fact.evidence))
+    lines.append("    {}  {}".format("evidence".ljust(width), fact.evidence))
+    if extra_lines:
+        lines.append("")
+        lines.extend(extra_lines)
     lines.append("")
     lines.append(style.dim("  computed by deterministic code from the raw tracking; "
                            "no model wrote this claim"))
@@ -85,9 +88,9 @@ def render_refusal(refusal, style: Style) -> str:
         "  " + _rule(style),
         "    " + refusal.why,
         "",
-        "    {}  {}".format(style.dim("missing"), refusal.missing),
-        "    {}  {}".format(style.cyan("remedy"), refusal.remedy),
-        "    {}  {}".format(style.green("proxy"), refusal.proxy),
+        "    {}  {}".format("missing".ljust(8), refusal.missing),
+        "    {}  {}".format("remedy".ljust(8), refusal.remedy),
+        "    {}  {}".format("proxy".ljust(8), refusal.proxy),
         "",
         style.dim("  a refusal is not a failure of the tool; it is the tool's job"),
     ]
@@ -139,6 +142,32 @@ def render_ledger(analysis: Analysis, style: Style) -> str:
     lines.append("")
     lines.append(style.dim("  a claim that cannot be supported would appear here as 'refused'"))
     return "\n".join(lines)
+
+
+def coverage_strip(analysis: Analysis, style: Style, buckets: int = 100) -> str:
+    """The feed's coverage across the match, drawn in the terminal.
+
+    Each column is a slice of the match; the height of the block is the share of that slice's
+    graded frames in which the ball was observed. It is the picture of the whole problem - the
+    places the tracker lost the ball - and it needs no plotting library, no browser and no
+    network, so it prints on whatever machine the jury's laptop happens to be.
+    """
+    levels = " \u2581\u2582\u2583\u2584\u2585\u2586\u2587\u2588"
+    graded = analysis.evidence.graded
+    seen = analysis.evidence.ball_present
+    n = analysis.n_frames
+    size = max(1, n // buckets)
+    out = []
+    for index in range(buckets):
+        start = index * size
+        stop = min(n, start + size)
+        window_graded = graded[start:stop]
+        if not window_graded.any():
+            out.append(" ")
+            continue
+        share = float(seen[start:stop][window_graded].mean())
+        out.append(levels[min(len(levels) - 1, int(share * len(levels)))])
+    return "".join(out)
 
 
 def render_coverage(analysis: Analysis, window: str, style: Style) -> str:
@@ -300,7 +329,16 @@ def main(argv: Optional[List[str]] = None) -> int:
         if args.as_json:
             print(json.dumps(fact.to_dict(), indent=2))
         else:
-            print(render_fact(fact, style))
+            strip = coverage_strip(analysis, style)
+            extra = [
+                "    {}  {}".format("the feed".ljust(10), strip),
+                "    {}  {}".format(
+                    "".ljust(10),
+                    "each column is about {:,} frames; the height is the share of frames in "
+                    "which the ball is observed".format(max(1, analysis.n_frames // 100)),
+                ),
+            ]
+            print(render_fact(fact, style, extra_lines=extra))
         return 0
     if args.command == "ledger":
         if args.as_json:
