@@ -161,7 +161,7 @@ plumb ledger                               # metric | coverage | supported or re
 
 | when | what |
 |---|---|
-| **now → 25 Nov** | the fact library is built; the next work is **the ten-match dataset** — the method has to run on every match, and the ten-match ledger is the artefact the club actually takes |
+| **now → 25 Nov** | the fact library is built, and **it already runs on more than one match**: the team names, the half boundaries and the file stem all come from the match's own data, verified end to end on Metrica's three sample matches. The remaining work is the ten-match ledger |
 | **26 Nov** | the briefs land. Point the library at the aspect the organisers name; the aspect is their choice, not ours |
 | **26 Nov → 14 Jan** | the ledger across ten matches, the per-match coverage, and the interface that renders it |
 | **14 Jan → 2 Mar** | the recorded fallback, the slides, and the rehearsal on someone else's laptop |

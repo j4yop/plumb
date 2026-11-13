@@ -55,13 +55,21 @@ arrive until 26 November, so there is nothing to build against.
       event-derived possession truth — so the ten-match dataset can be tuned on external data
       from the first hour it lands, exactly as the rules require.
 
+- [x] **Three external matches, not one.** `Sample_Game_1` and `Sample_Game_2` (Metrica CSV) as
+      well as `Sample_Game_3` (FIFA/EPTS), each read with its own half boundaries and each with an
+      event-derived possession truth. The three-game sweep is in ADR 0008, and it says something
+      more honest than the one-game version did: the control radius is a **plateau**, not a peak.
+- [x] **The engine runs on more than one match.** The team names, the half boundaries and the
+      file stem now come from the match's own data rather than from a constant, and the whole
+      fact library has been run end to end on all three external matches. What used to be a
+      rewrite is now a configuration.
+- [x] **The dead-ball onset is a switch.** The organisers asked when a dead period begins; the
+      three rules that can be implemented are measured, and the answer is one edit (ADR 0010).
+
 **What is left for this window:**
 
-- Pull two or three **public** Metrica tracking matches (the sample data is open) and hand-label
-  formations on them — legal, because the ban is only on the provided match.
-- Make the engine **read a directory of matches** rather than one, so the ten-match ledger is a
-  configuration change rather than a rewrite.
 - Read the briefs when they land on the 26th, and point the work at the aspect the organisers name.
+- The ten-match ledger, which is the artefact the club takes away.
 
 ---
 

@@ -44,6 +44,12 @@ class Config:
     configuration is written into the run report.
     """
 
+    # --- the bundle ------------------------------------------------------------------------------
+    # The organisers name their files "<GAME>_<source>_atd.txt", and "BAR-ATH" is this match.
+    # It is a configuration value so that the ten-match dataset is ten configurations rather than
+    # ten edits to the loader.
+    game_stem: str = "BAR-ATH"
+
     # --- pitch ---------------------------------------------------------------------------------
     # 105.3 x 68.0 m is the size measured from the corrected tracking (see the organisers'
     # DATA.md); the ATD metadata itself reports 105 x 68. The 30 cm only affects distances.

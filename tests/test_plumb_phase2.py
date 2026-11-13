@@ -62,13 +62,14 @@ def test_the_annotation_is_read_as_fourteen_codes():
 
 def test_a_defending_code_is_the_mirror_of_an_attacking_one():
     """The pairs are what let the annotation be used as a check without ground truth."""
-    pairs = phases.mirror_pairs(_bundle())
+    names = ("Barcelona", "Atletic Club")  # the spelling in the bundle's own metadata
+    pairs = phases.mirror_pairs(_bundle(), names)
     assert len(pairs) > 100
     for attack, defence in pairs:
-        assert phases.team_index(attack.team) >= 0
-        assert phases.team_index(defence.team) >= 0
+        assert phases.team_index(attack.team, names) >= 0
+        assert phases.team_index(defence.team, names) >= 0
         # Opposite teams, and the same window.
-        assert phases.team_index(attack.team) != phases.team_index(defence.team)
+        assert phases.team_index(attack.team, names) != phases.team_index(defence.team, names)
         assert abs(attack.start - defence.start) <= 2
         assert abs(attack.end - defence.end) <= 2
 
@@ -282,6 +283,56 @@ def test_the_plan_measures_the_gap_in_the_scoped_frames(analysis):
     route = router.route("how much of the final third can we see")
     plan_ = plan.plan_for(analysis, route)
     assert plan_.how_much
+
+
+# --------------------------------------------------------------------------------------------------
+# Another match
+# --------------------------------------------------------------------------------------------------
+
+
+def test_the_facts_use_the_matches_own_team_names(analysis):
+    """The ten-match dataset is not Barcelona and Atletic Club."""
+    analysis.team_names = ("Riverside FC", "North End")
+    try:
+        fact = FACT_LIBRARY["possession_share"](analysis, "all")
+        assert "Riverside FC" in fact.answer
+        assert "Barcelona" not in fact.answer
+        assert any(label == "North End" for label, _ in fact.detail)
+    finally:
+        analysis.team_names = ("Barcelona", "Atletic Club")
+
+
+def test_the_window_comes_from_the_matches_own_boundaries(analysis):
+    """A hard-coded pair of half boundaries would be wrong on nine of ten matches."""
+    original = analysis.phase_windows
+    try:
+        analysis.phase_windows = {
+            "first-half": (0, 199),
+            "second-half": (250, 449),
+            "halftime": (200, 249),
+        }
+        assert analysis.window("first-half") == (0, 199)
+        assert analysis.window("second-half") == (250, 449)
+    finally:
+        analysis.phase_windows = original
+
+
+def test_the_annotation_is_matched_against_the_matches_own_names():
+    """A hard-coded name pair silently loses half the mirror pairs."""
+    from mtah.match import Phase
+
+    instances = [
+        Phase(start=0, end=10, code="PROGRESSION", team="Riverside FC", kind="", half=""),
+        Phase(start=0, end=10, code="DEFENDING IN MIDDLE THIRD", team="North End", kind="",
+              half=""),
+    ]
+    labels = np.full(20, 0, dtype=np.int8)
+    names = ("Riverside FC", "North End")
+    pairs = phases.mirror_pairs(instances, names)
+    assert len(pairs) == 1
+    assert phases.pair_agreement(pairs, labels, names)["agreement"] == 1.0
+    # The default names cannot resolve these teams, and that must be visible rather than silent.
+    assert phases.mirror_pairs(instances) == []
 
 
 # --------------------------------------------------------------------------------------------------

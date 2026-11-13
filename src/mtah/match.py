@@ -98,7 +98,7 @@ def asset_paths(config: Config) -> dict:
     """
     root = data_dir(config)
     source = config.source
-    stem = "BAR-ATH_" + source
+    stem = config.game_stem + "_" + source
     folder = os.path.join(root, source)
     paths = {
         "atd_raw": os.path.join(folder, stem + "_atd.txt"),

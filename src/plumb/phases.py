@@ -94,17 +94,26 @@ def by_code(phases: List[Phase], code: str) -> List[Phase]:
     return [p for p in phases if p.code == code]
 
 
-def team_index(name: str) -> int:
-    """0 for the home team, 1 for the away team, -1 when the annotation names neither."""
+def team_index(name: str, team_names: Tuple[str, str] = ("Barcelona", "Atletic Club")) -> int:
+    """0 for the home team, 1 for the away team, -1 when the annotation names neither.
+
+    The names come from the match metadata, not from this module: the ten-match dataset is not
+    Barcelona and Athletic Club, and a hard-coded pair would fail quietly on every other match.
+    """
     lowered = (name or "").strip().lower()
-    if lowered in ("barcelona",):
-        return 0
-    if lowered in ("atletic club", "athletic", "ath bilbao"):
-        return 1
+    for index, team in enumerate(team_names):
+        if lowered == (team or "").strip().lower():
+            return index
+    # The annotation and the metadata do not always spell a name the same way. Fall back to a
+    # containment test, which is enough for the two-team case.
+    for index, team in enumerate(team_names):
+        if lowered and lowered in (team or "").strip().lower():
+            return index
     return -1
 
 
-def agreement(phases: List[Phase], code: str, labels: np.ndarray, team_of: str = "Barcelona") -> Dict[str, float]:
+def agreement(phases: List[Phase], code: str, labels: np.ndarray,
+              team_names: Tuple[str, str] = ("Barcelona", "Atletic Club")) -> Dict[str, float]:
     """How often our possession labels agree with the organisers' annotation of a code.
 
     The codes come in two flavours. An **attacking** code names the team that had the ball, so
@@ -119,7 +128,7 @@ def agreement(phases: List[Phase], code: str, labels: np.ndarray, team_of: str =
     agree = 0
     named = 0
     for instance in by_code(phases, code):
-        team = team_index(instance.team)
+        team = team_index(instance.team, team_names)
         if team < 0:
             continue
         expected = 1 - team if defending else team
@@ -139,7 +148,8 @@ def agreement(phases: List[Phase], code: str, labels: np.ndarray, team_of: str =
     }
 
 
-def mirror_pairs(phases: List[Phase]) -> List[Tuple[Phase, Phase]]:
+def mirror_pairs(phases: List[Phase],
+                 team_names: Tuple[str, str] = ("Barcelona", "Atletic Club")) -> List[Tuple[Phase, Phase]]:
     """The instances where an attacking code and a defending code cover the same window.
 
     Each pair says: over this interval, this team had the ball and that team was defending.
@@ -150,25 +160,26 @@ def mirror_pairs(phases: List[Phase]) -> List[Tuple[Phase, Phase]]:
     defending = [p for p in phases if p.code in DEFENDING_CODES]
     pairs: List[Tuple[Phase, Phase]] = []
     for attack in attacking:
-        attack_team = team_index(attack.team)
+        attack_team = team_index(attack.team, team_names)
         if attack_team < 0:
             continue
         for defence in defending:
             if abs(attack.start - defence.start) > 2 or abs(attack.end - defence.end) > 2:
                 continue
-            if team_index(defence.team) == attack_team:
+            if team_index(defence.team, team_names) == attack_team:
                 continue
             pairs.append((attack, defence))
             break
     return pairs
 
 
-def pair_agreement(pairs: List[Tuple[Phase, Phase]], labels: np.ndarray) -> Dict[str, float]:
+def pair_agreement(pairs: List[Tuple[Phase, Phase]], labels: np.ndarray,
+                   team_names: Tuple[str, str] = ("Barcelona", "Atletic Club")) -> Dict[str, float]:
     """Agreement with the mirror pairs, which are the strongest statement available."""
     total = 0
     agree = 0
     for attack, defence in pairs:
-        attack_team = team_index(attack.team)
+        attack_team = team_index(attack.team, team_names)
         if attack_team < 0:
             continue
         lo = max(0, attack.start)

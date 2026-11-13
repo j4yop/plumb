@@ -41,6 +41,8 @@ class Analysis:
     phases: List = None  # the full Smart Tagging annotation (mtah.match.Phase records)
     pitch_length_m: float = 105.3
     pitch_width_m: float = 68.0
+    team_names: Tuple[str, str] = ("Barcelona", "Atletic Club")
+    phase_windows: dict = None  # the match's own half boundaries, from its own data
 
     def __post_init__(self):
         if self.teams is None:
@@ -51,6 +53,12 @@ class Analysis:
             self.set_pieces = []
         if self.phases is None:
             self.phases = []
+        if self.phase_windows is None:
+            self.phase_windows = {
+                "first-half": (11185, 90651),
+                "second-half": (110808, 190197),
+                "halftime": (90652, 110807),
+            }
         self._coverage = None
         self._geometry = None
 
@@ -76,19 +84,29 @@ class Analysis:
         return self._geometry
 
     def window(self, name: str = "all") -> Tuple[int, int]:
-        """The video-frame range of a named window."""
-        graded = self.evidence.graded
+        """The video-frame range of a named window.
+
+        The boundaries come from the match's own data, not from a constant in this module: the
+        ten-match dataset is ten different matches, and a hard-coded pair of half boundaries would
+        be wrong on nine of them.
+        """
         if name in ("all", "match"):
             return 0, self.n_frames - 1
-        if name == "first-half":
-            return 11185, 90651
-        if name == "second-half":
-            return 110808, 190197
-        if name == "halftime":
-            return 90652, 110807
+        if name in self.phase_windows:
+            start, stop = self.phase_windows[name]
+            return max(0, int(start)), min(self.n_frames - 1, int(stop))
         # Fall back to the graded frames.
-        indices = np.flatnonzero(graded)
+        indices = np.flatnonzero(self.evidence.graded)
         return (int(indices[0]), int(indices[-1])) if indices.size else (0, self.n_frames - 1)
+
+
+def _phase_windows(config: Config, n_frames: int) -> dict:
+    """The match's own half boundaries, as ``Analysis`` wants them."""
+    return {
+        "first-half": (config.first_half_frames[0], config.first_half_frames[1]),
+        "second-half": (config.second_half_frames[0], config.second_half_frames[1]),
+        "halftime": (config.half_time_frames[0], config.half_time_frames[1]),
+    }
 
 
 def _cache_path(config: Config) -> str:
@@ -122,6 +140,8 @@ def analyse(config: Config, use_cache: bool = True) -> Analysis:
         phases=list(match.phases),
         pitch_length_m=config.pitch_length_m,
         pitch_width_m=config.pitch_width_m,
+        team_names=tuple(match.team_names),
+        phase_windows=_phase_windows(config, match.n_frames),
     )
     _save_cache(path, analysis)
     return analysis
@@ -164,6 +184,7 @@ def _save_cache(path: str, analysis: Analysis) -> None:
             phase_kind=phase_kind,
             phase_half=phase_half,
             phase_extra=phase_extra,
+            team_names=np.asarray(analysis.team_names, dtype="U64"),
             graded=evidence.graded,
             phase=evidence.phase,
             warmup=evidence.warmup,
@@ -258,4 +279,6 @@ def _load_cache(path: str, config: Config) -> Analysis:
         phases=phases,
         pitch_length_m=config.pitch_length_m,
         pitch_width_m=config.pitch_width_m,
+        team_names=tuple(str(n) for n in data["team_names"]),
+        phase_windows=_phase_windows(config, int(labels.shape[0])),
     )

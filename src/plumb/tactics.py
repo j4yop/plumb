@@ -319,11 +319,11 @@ def restarts(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
     )
 
 
-def _team_lead(home: int, away: int) -> str:
+def _team_lead(home: int, away: int, team_names=("Barcelona", "Atletic Club")) -> str:
     """The team that came out ahead, or an empty string when they are level."""
     if home == away:
         return ""
-    return "Barcelona" if home > away else "Athletic Club"
+    return team_names[0] if home > away else team_names[1]
 
 def pressing(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
     """How the team without the ball presses, and whether the press wins it.

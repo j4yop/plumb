@@ -32,7 +32,9 @@ from . import phases as phase_tools
 from .analysis import Analysis
 from .tactics import TACTICS, attacking_sides, tactics_scope
 
-TEAM_NAMES = ("Barcelona", "Athletic Club")
+# The team names come from the match metadata. Every fact takes them from the analysis; this
+# constant is only the fallback for a match whose metadata we have not read.
+TEAM_NAMES = ("Barcelona", "Atletic Club")
 
 
 @dataclass
@@ -223,11 +225,11 @@ def possession_share(analysis: Analysis, window: str = "all", zone: str = None,
         id="possession_share",
         title="Possession share ({})".format(window),
         answer="{} held the ball for {} of the live frames.".format(
-            TEAM_NAMES[0], _fmt_pct(share)
+            analysis.team_names[0], _fmt_pct(share)
         ),
         detail=[
-            (TEAM_NAMES[0], _fmt_pct(share)),
-            (TEAM_NAMES[1], _fmt_pct(1 - share)),
+            (analysis.team_names[0], _fmt_pct(share)),
+            (analysis.team_names[1], _fmt_pct(1 - share)),
             ("live frames", "{:,} of {:,}".format(total, graded)),
         ],
         coverage="{} of the window's graded frames are live; the ball is observed on {} of them".format(
@@ -342,10 +344,10 @@ def longest_possession(analysis: Analysis, window: str = "all", zone: str = None
         id="longest_possession",
         title="Longest possession ({})".format(window),
         answer="{} kept the ball for {:.1f} s, from frame {:,}.".format(
-            TEAM_NAMES[label], duration, a
+            analysis.team_names[label], duration, a
         ),
         detail=[
-            ("team", TEAM_NAMES[label]),
+            ("team", analysis.team_names[label]),
             ("length", "{:.1f} s".format(duration)),
             ("from frame", "{:,}".format(a)),
             ("to frame", "{:,}".format(b)),
@@ -488,7 +490,7 @@ def _agreement_line(analysis: Analysis, code: str) -> str:
     This is the check that matters, and it is legal: the Smart Tagging is provided data, and no
     possession ground truth is involved anywhere.
     """
-    result = phase_tools.agreement(analysis.phases, code, analysis.labels)
+    result = phase_tools.agreement(analysis.phases, code, analysis.labels, analysis.team_names)
     if not result["instances"]:
         return ""
     return (
@@ -832,8 +834,8 @@ def annotation_agreement(analysis: Analysis, window: str = "all", zone: str = No
         expected_is_attacker = code in phase_tools.ATTACKING_CODES or code in phase_tools.RESTART_CODES
         rows.append((code, result, expected_is_attacker))
 
-    pairs = phase_tools.mirror_pairs(analysis.phases)
-    pair_result = phase_tools.pair_agreement(pairs, analysis.labels)
+    pairs = phase_tools.mirror_pairs(analysis.phases, analysis.team_names)
+    pair_result = phase_tools.pair_agreement(pairs, analysis.labels, analysis.team_names)
 
     detail = []
     for code, result, _ in rows:
