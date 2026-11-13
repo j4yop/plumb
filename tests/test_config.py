@@ -150,7 +150,7 @@ def test_a_warm_up_frame_is_graded():
 
 def test_as_dict_round_trips():
     payload = DEFAULT.as_dict()
-    assert payload["control_radius_m"] == 2.5
+    assert payload["control_radius_m"] == 2.0
     assert payload["first_half_frames"] == (11185, 90651)
 
     rebuilt = Config(**payload)
@@ -171,7 +171,7 @@ def test_the_configuration_is_frozen():
 
 def test_the_thresholds_are_in_football_units():
     """Metres and seconds, never frames (see the module docstring)."""
-    assert DEFAULT.control_radius_m == 2.5
+    assert DEFAULT.control_radius_m == 2.0
     assert DEFAULT.reach_radius_m == 6.0
     assert DEFAULT.handover_margin_m == 0.5
     assert DEFAULT.run_speed_mps == 2.0

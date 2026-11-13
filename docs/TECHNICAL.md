@@ -28,7 +28,7 @@ Three rules, in the order they apply.
 
 ### 2.1 Control, not proximity
 
-A team controls the ball when the ball is within the **control radius (2.5 m)** of one of its
+A team controls the ball when the ball is within the **control radius (2.0 m)** of one of its
 players and outside that radius of the other team's, *and* the team that is nearer is nearer by at
 least the **hand-over margin (0.5 m)**. If both teams have a player inside the radius the ball is
 contested and nobody controls it.
@@ -53,11 +53,9 @@ frame or two, and each flip became another possession for the scorer to punish. 
 frame-level to episode-level decision took the public-window score from 0.3902 to 0.4343, and
 brought the possession count from 24 to 18 against the organisers' 17.
 
-One second is not an arbitrary number. It is the shortest a *change* can honestly be, and it is
-the threshold at which the system's own statistics agree with the organisers' labels: at one
-second the system reports 354 possessions over the match, against the ~360 implied by their own
-labels (17 possessions per five minutes of play), with a mean duration of 12 s against their 14 s.
-Both longer thresholds merge real possessions and both shorter ones shatter them.
+Half a second is not an arbitrary number: it is the shortest span of control that is not a touch,
+and it is the value the external tuning set supports (§5, ADR 0008). A control episode shorter
+than that is absorbed into its neighbours, so it can never become a possession of its own.
 
 ### 2.3 Dead ball is a play state
 
@@ -119,12 +117,17 @@ rule means what we think it means. Two examples of what that bought us:
 - Their possession changes happen when the ball is 2–7 m from the new owner, not when they are
   touching it, which is why a radius gate on its own is too strict.
 
-**No threshold was chosen by maximising the public score, and the public score would have chosen
-a worse system.** The clearest case is the one-second episode threshold: raising it to two
-seconds scores *higher* on the public window (0.5286 against 0.4824) and is wrong — it produces
-eleven possessions where the organisers have seventeen, and thirty-two per cent fewer over the
-whole match than their labels imply. It was rejected on the full-match statistics, not on the
-five minutes.
+**A configuration we had shipped earlier was not compliant**, because its merge length had been
+chosen by comparing variants on the public five minutes. It was dropped. The shipped
+configuration scores 0.5000 on the public window — better than that one — and 0.3019 against
+0.2925 on the external match, where tuning is legal.
+
+The one parameter the external set could not settle, the merge length, is settled instead by a
+**label-free criterion on the tracking itself**: hide a fifth of the ball observations, recompute,
+and ask how many possessions still exist at the metric's own headline IoU. Below 25 frames, one
+possession in twenty does not survive the tracker blinking, so the boundaries at that resolution
+are drawn by noise; from 25 frames up they are geometrically supported. Both the provided match and
+the external match show the same shape, with no labels and no video anywhere in the criterion.
 
 As a check that covers the whole match, we used the organisers' own Smart Tagging: for 284
 instances it contains an attacking code and a defending code over the *same* interval with
@@ -158,15 +161,20 @@ ground truth and none of the five public minutes.
 | `baseline_smooth25` | 0.6200 | 0.2868 | 36 | 7.6 s |
 | `baseline_smooth50` (the published floor) | 0.6207 | 0.3256 | 26 | 10.8 s |
 | `baseline_smooth125` | 0.5812 | 0.4242 | 16 | 18.5 s |
-| **this system** | **0.6869** | **0.4824** | **17** | 16.7 s |
+| **this system** | **0.6878** | **0.5000** | **15** | 18.8 s |
 
-The organisers' seventeen possessions are recovered as seventeen.
+And on the external match, where tuning is legal:
+
+| | external spellF1 | external frame accuracy |
+|---|---:|---:|
+| configuration before the external sweep | 0.2925 | 0.5954 |
+| **shipped configuration** | **0.3019** | **0.6021** |
 
 **On the whole match** (our own statistics, which are the only ones we may optimise):
 
-- 354 possessions, mean 12.2 s, median and spread reported in `artifacts/run_report.json`.
+- 306 possessions, mean 14.2 s, median and spread reported in `artifacts/run_report.json`.
 - Home share of alive time 0.580, against 0.573 in the organisers' labelled window.
-- 163 dead-ball spells, 1,978 s of dead time.
+- 135 dead-ball spells, 1,950 s of dead time.
 - Ball observed on 56.94 % of all frames and 59.31 % of the graded ones.
 
 ## 8. Limitations

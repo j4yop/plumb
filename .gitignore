@@ -38,3 +38,6 @@ htmlcov/
 .idea/
 .vscode/
 *.swp
+
+# the plumb CLI's cached analysis
+artifacts/

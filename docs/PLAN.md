@@ -14,7 +14,7 @@ November** — an eight-hour buffer — because a form is less forgiving than a 
 
 | When | What | Done when |
 |---|---|---|
-| **12 Nov (now)** | Model locked: control-based ownership, episode-level decisions, conservative dead-ball detection. Public-window `spellF1` 0.4824, 17 possessions against the organisers' 17 | `artifacts/submission.csv` validates against the official rules |
+| **12 Nov (now)** | Model locked and re-derived under the organisers' clarification email: control radius and dwell from an external tuning set, merge length from a label-free stability criterion. Public-window `spellF1` 0.5000 | `artifacts/submission.csv` validates against the official rules |
 | 12–13 Nov | Email the organisers the five questions in `docs/PROBLEM.md` §5; keep working while waiting | answers, or a plan that does not depend on them |
 | 13 Nov | Write the technical document (`docs/TECHNICAL.md`), the README, the ADRs | a stranger could reproduce the result from the repository |
 | 14 Nov | **Submit the current file as insurance.** One response per team, editable, last response counted | the form has our file attached |

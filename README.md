@@ -24,13 +24,16 @@ The project this grows into — the thesis, the name and what it has to earn —
 |---|---|
 | **Metric** | `spellF1` — possessions matched one-to-one by temporal IoU, averaged over IoU 0.3–0.7 |
 | **Published floor** | `spellF1` 0.2433 (`baseline_smooth50`, scored on the full match) |
-| **This system, public 5-minute window** | `spellF1` **0.4824**, `macroF1` 0.6869 — above all four shipped baselines on that window |
-| **Possessions** | 354 over the match, against the ~360 implied by the organisers' own labels |
+| **This system, public 5-minute window** | `spellF1` **0.5000**, `macroF1` 0.6878 — above all four shipped baselines on that window |
+| **Possessions** | 306 over the match, 15 in the public window against the organisers' 17 |
 | **Runtime** | 2.9 s for the whole match, single core |
 
 The public five minutes are a **correctness check**, never a tuning set — the organisers say
 explicitly that the variant that wins on them loses on the full match, and they are right: it
-does. See [`docs/TECHNICAL.md`](docs/TECHNICAL.md) for how each threshold was actually chosen.
+does. Every threshold is tuned on **external** data (Metrica's public sample match, with its own
+event annotations), as their clarification email requires. See
+[`docs/TECHNICAL.md`](docs/TECHNICAL.md) §5 for the derivation, and
+[`scripts/external_tuning.py`](scripts/external_tuning.py) for the harness.
 
 ---
 

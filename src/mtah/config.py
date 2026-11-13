@@ -66,7 +66,7 @@ class Config:
     # --- control and hand-over -----------------------------------------------------------------
     # How near a player must be for the ball to be considered theirs: within this radius a player
     # has the ball under control. If both teams have somebody inside it the ball is contested.
-    control_radius_m: float = 2.5
+    control_radius_m: float = 2.0
     # How near somebody must be for the ball to belong to their team at all. Beyond this the ball
     # is loose or in flight and the last owner keeps it.
     reach_radius_m: float = 6.0
@@ -86,12 +86,19 @@ class Config:
     # labels (17 possessions per five minutes of play), with a mean duration of 12 s against
     # their 14 s. Longer thresholds merge real possessions; shorter ones shatter them.
     min_control_frames: int = 25
-    # A change of control has to persist this long before it counts as a change of possession.
-    min_dwell_frames: int = 5
+    # A change of control has to persist this long before it counts as a change of possession:
+    # half a second of control is the shortest that is not a touch. Tuned on the same external
+    # match.
+    min_dwell_frames: int = 12
 
     # --- absence classification -----------------------------------------------------------------
     # A player moving faster than this is considered to be running rather than walking.
     run_speed_mps: float = 2.0
+    # The dead-ball layer. Switched off only in the external tuning harness, where the
+    # reference labels come from event annotations that carry no dead-ball class at all —
+    # so comparing a system that emits dead frames against a reference that has none would
+    # measure the definitions, not the parameters.
+    dead_detection: bool = True
     # How few players may be running for the match to count as stopped. Measured against the
     # organisers' labels: "the ball is untracked and at most this many players are running" is a
     # 96%-precise dead-ball test, and a false dead-ball period is the expensive mistake because it

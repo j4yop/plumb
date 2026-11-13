@@ -266,10 +266,11 @@ def read_atd(raw_path: str, n_slots: int, config: Config) -> dict:
                 comma = group.find(",")
                 second = group.find(",", comma + 1)
                 x = float(group[:comma])
-                y = float(group[comma + 1:second])
+                # Some exports carry "x,y" without a speed field; others carry "x,y,speed".
+                y = float(group[comma + 1:second] if second > 0 else group[comma + 1:])
                 player_xy[count, index, 0] = x * length_m
                 player_xy[count, index, 1] = y * width_m
-                if second >= 0:
+                if second > 0:
                     tail = group[second + 1:]
                     if tail and tail[0] != "N":
                         player_speed[count, index] = float(tail)

@@ -266,7 +266,9 @@ def assign_owners(evidence, config: Config) -> Tuple[np.ndarray, List[Tuple[int,
         if evidence.dead is not None
         else np.isin(evidence.absence_class, (STOPPAGE, OUT_OF_PLAY, WARMUP))
     )
-    if config.dead_min_block_frames or config.dead_max_gap_frames:
+    if not config.dead_detection:
+        dead = np.zeros_like(dead)
+    elif config.dead_min_block_frames or config.dead_max_gap_frames:
         dead = _smooth_dead_blocks(dead, config)
     current = -1
     pending_challenger = -1
