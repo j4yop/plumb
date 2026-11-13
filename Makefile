@@ -16,7 +16,8 @@ FRAMES     ?= 199319
 # The package lives in src/ and is not installed in the developer's environment.
 export PYTHONPATH := src
 
-.PHONY: all install install-dev reproduce validate test report clean help ask coverage ledger
+.PHONY: all install install-dev reproduce validate test report clean help ask coverage ledger \
+        external stability dead-onset
 
 all: test validate
 
@@ -31,6 +32,9 @@ help:
 	@echo "ask          plumb ask '<question>' -- the interface the project is judged on"
 	@echo "coverage     plumb coverage -- how much of the match the feed can carry"
 	@echo "ledger       plumb ledger -- every claim, with its coverage"
+	@echo "external     the external tuning sweep over Metrica's three sample matches"
+	@echo "stability    the label-free merge-length criterion, on four matches"
+	@echo "dead-onset   the three dead-ball onset rules, and what each costs"
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -60,6 +64,16 @@ coverage:
 
 ledger:
 	@$(PYTHON) -m plumb ledger
+
+# The compliance evidence: every threshold is checked on data that is not the provided match.
+external:
+	$(PYTHON) scripts/external_tuning.py
+
+stability:
+	$(PYTHON) scripts/stability_sweep.py
+
+dead-onset:
+	$(PYTHON) scripts/dead_onset.py
 
 clean:
 	rm -rf artifacts .pytest_cache
