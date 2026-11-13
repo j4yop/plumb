@@ -119,6 +119,46 @@ until they start swallowing real changes of hands.
 So the value is the smallest merge length above which the boundary is geometrically supported.
 Four matches, the same shape, no labels and no video anywhere in the criterion.
 
+## The licence, checked rather than assumed
+
+The email adds: *"Please check the license of any dataset before using it."* Metrica's repository
+declares **no licence file** (`"license": null`), which means default copyright. Three consequences,
+all of them deliberate:
+
+- **we do not redistribute it** — no file from the sample data is in this repository or in the
+  submission; the reviewer downloads it themselves;
+- **we do not bundle it** into anything we ship;
+- the README publishes the data "to provide some sample data to play around with to the broader
+  football analytics community" and asks for acknowledgement, which is given here and in
+  `scripts/external_tuning.py`.
+
+**What happens if that dataset is set aside.** Only one shipped value leans on the sweep, and it
+would not change:
+
+| parameter | if the external data were unavailable |
+|---|---|
+| `control_radius_m` = 2.0 | unchanged — set by the football definition of control, which the sweep confirms but does not determine |
+| `min_control_frames` = 25 | unchanged — the label-free criterion on the **provided tracking** |
+| everything else | unchanged — a football statement, or an insensitivity the sweep merely reports |
+
+## What the organisers' annotation cannot settle
+
+It would be convenient to say the Smart Tagging settles the control radius, because the annotation
+is provided data and checking against it is explicitly allowed. **It does not, and the measurement
+says so.** Sweeping the radius against the 140 mirror pairs:
+
+| control radius | agreement over labelled frames | agreement counting abstention as wrong |
+|---:|---:|---:|
+| 1.0 m | 81.9 % | 73.6 % |
+| 2.0 m (shipped) | 77.6 % | 70.3 % |
+| 3.0 m | 74.2 % | 67.4 % |
+
+The agreement **rises as the radius shrinks**, because a smaller radius produces stickier ownership
+— it changes hands less often — and a coarse 20-to-50-second annotation rewards exactly that. Using
+it to choose the radius would be fitting a metre-scale parameter to a tens-of-seconds label, which
+is the same error as fitting to the public window. The annotation is therefore used for what it can
+bear: a check on **who had the ball**, at the resolution of a phase (ADR 0009).
+
 ## What this cost, honestly
 
 An earlier configuration had a merge length chosen by comparing variants **on the public five

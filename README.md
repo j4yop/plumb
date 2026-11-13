@@ -217,11 +217,17 @@ scripts in `scripts/`, so it can be regenerated rather than believed.
 
 ## The rules we are working under
 
+A rule-by-rule audit, with the command that checks each claim, is in
+[`docs/COMPLIANCE.md`](docs/COMPLIANCE.md). In short:
+
 - The labels must come out of an algorithm. There is no hand-labelling of the provided match
   anywhere in this repository, for training or for validation.
 - The competition's data is not uploaded to any hosted service, and it is not committed here.
 - The public five minutes are used to check that the pipeline is aligned and to understand the
   organisers' label semantics — never to choose between versions of the system.
 - Every threshold is tuned on **external** data, as the organisers' clarification email requires:
-  Metrica's public sample match, with its own event annotations, plus a label-free stability
-  criterion computed from the tracking. See [`docs/adr/0008-parameters-are-tuned-on-external-data.md`](docs/adr/0008-parameters-are-tuned-on-external-data.md).
+  Metrica's three public sample matches, with their own event annotations, plus a label-free
+  stability criterion computed from the tracking. See
+  [`docs/adr/0008-parameters-are-tuned-on-external-data.md`](docs/adr/0008-parameters-are-tuned-on-external-data.md).
+- **The video is never opened by any code.** `grep -rn "\.mp4\|cv2\|ffmpeg\|VideoCapture" src/`
+  returns nothing, and the asset list contains four files, none of them the video.

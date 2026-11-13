@@ -125,10 +125,14 @@ Everything in our design exists to fix one of those two failures:
 
 **Deliberately out of scope for Phase 1:** the Phase 2 project (built 26 Nov – 14 Jan on 10 matches with event data), any use of the broadcast recording (it is not frame-aligned to the tactical video and its homography is valid on only 65.81 % of frames), and any model training (there is no permitted training signal for this match).
 
-**Known open questions** — sent to the organisers, and the answers change the implementation:
+**Known open questions** — sent to the organisers on 13 November. Their reply was that *"all the
+information we can share has already been provided"*, so **none of these will be answered** and each
+one is decided here on the merits:
 
-1. Does `D` begin at the infringement, the whistle, or the corrected tracking's dead-ball flag? (issue #31, unanswered)
-2. When the ball is untracked during live play, is the truth `H`/`A` (the spell continues) or `D`?
-3. Is the submission editable with the last response counted? (we intend to submit an early baseline as insurance)
-4. What exactly is in the Phase-2 package, and do set-piece events carry team attribution?
-5. How are the 20 → 5 finalists selected?
+| question | decision |
+|---|---|
+| 1. Does `D` begin at the infringement, the whistle, or the corrected tracking's dead-ball flag? | **All three rules are implemented and measured** (`Config.dead_onset`). They differ by one possession over a whole match and by nothing on the public window, so the default — the whistle — stands. The corrected tracking's own flag is data we do not have; if that is the intended answer, the honest response is to ask for the export, not to guess. See ADR 0010. |
+| 2. When the ball is untracked during live play, is the truth `H`/`A` or `D`? | **`H`/`A`.** The truth comes from the *corrected* tracking, which repairs the occlusion; a gap in the raw feed is not a stoppage. The owner is carried forward until the ball is seen again. |
+| 3. Is the submission editable, last response counted? | **Yes** — `SUBMISSION.md` says so. The early baseline is uploaded as insurance on 14 November and the final file replaces it. |
+| 4. What is in the Phase-2 package? | Unknown until 26 November. The library is written so that a new match is a configuration, not a rewrite. |
+| 5. How are the 20 → 5 selected? | Unknown. The repository, the technical document, the compliance page and the demo are all built to stand on their own. |

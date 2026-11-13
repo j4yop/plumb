@@ -104,9 +104,10 @@ complete.
 - **The video.** It is the source of the tracking, but at 1920×1080 with players twenty pixels
   tall it tells us nothing the tracking does not already say, and the broadcast video is not
   frame-aligned to the submission's timeline.
-- **The homography.** It is 100 % valid on the tactical recording and it is the right tool for
-  debugging — project the tracking onto a frame and watch what the model saw. It is not needed to
-  decide who has the ball, so it is not in the decision path.
+- **The homography.** It is 100 % valid on the tactical recording, and it is what turns the
+  provider's normalised coordinates into metres. It is not needed to decide who has the ball, so
+  it is not in the decision path — and it is not used to check the output against the video, which
+  the rules forbid.
 - **Any model.** There is no permitted training signal for this match: the labels we are scored on
   are private, and hand labels on the provided match are forbidden for training and validation
   alike. A rule-based system is therefore not a stylistic choice, it is the only honest one.
