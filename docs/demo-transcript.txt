@@ -1,0 +1,117 @@
+
+  plumb — a local, deterministic checker of tracking-derived claims
+  the data never leaves this machine; the reasoning is deterministic;
+  every answer ships its sources
+
+  match: Barcelona v Atletic Club, 199,319 frames, 46 track slots
+
+========================================================================
+  BEAT 1  a question, answered
+========================================================================
+
+  SUPPORTED  Build-up
+  ──────────────────────────────────────────────────────────────
+    the team in possession averaged 55.7 m from its own goal line, with 2.8 options within twenty metres of the carrier.
+
+    line height          55.7 m from own goal line
+    options within 20 m  2.8 at the carrier
+    ball depth           58.3 m from own goal line
+    scoped frames        54,680
+
+    scope                in the first half
+    coverage             86.1 % of the scoped frames have the ball observed; the tracking supports 90% of them
+    confidence           our labels agree with the organisers' own build up annotation on 83.2% of 10677 frames; line height is the mean of every visible player of the team in possession; options are counted from the carrier's own position
+    evidence             frames 11,187-90,221
+
+  computed by deterministic code from the raw tracking; no model wrote this claim
+
+========================================================================
+  BEAT 2  a question the data cannot carry
+========================================================================
+
+  REFUSED  per-player questions
+  ──────────────────────────────────────────────────────────────
+    the tracking has no player identities: 46 anonymous track slots for 22 players on the pitch, and the organisers warn that slots swap identity as the tracker loses and re-acquires people. A slot is not a person.
+
+    missing   an identity-resolved tracking export, or per-player event annotations for this match.
+    remedy    request the organisers' corrected tracking export, which resolves the slots; in the meantime the team-level facts below answer every question of the same shape
+    proxy     team-level facts: possession share, possession count and length, dead-ball time, where the ball was, and the coverage of the feed itself.
+
+  a refusal is not a failure of the tool; it is the tool's job
+
+========================================================================
+  BEAT 3  the coverage belongs to the claim, not to the match
+========================================================================
+
+  attacking third      ball observed      31,219 (52.1 %)
+  middle third         ball observed      40,579 (71.9 %)
+  build up phases      ball observed      10,227 (92.7 %)
+
+  the same match, three scopes, three different numbers — and the tool
+  reports the one that belongs to the claim.
+
+========================================================================
+  BEAT 4  what would close the gap
+========================================================================
+
+  REFUSED  questions about the moments the feed cannot see
+  ──────────────────────────────────────────────────────────────
+    for stretches of more than a minute the ball is not tracked at all — the longest is around three minutes and a half near the end of the second half. Nothing about possession in those frames can be supported, because there is no observation to support it.
+
+    missing   the ball positions for those frames, which the tracker did not produce.
+    remedy    the organisers' corrected tracking export, which repairs the same gaps; failing that, a second camera angle on the same match, which would see what this one lost
+    proxy     the possession either side of the gap, with the gap itself reported as a hole rather than filled in.
+
+  a refusal is not a failure of the tool; it is the tool's job
+
+  PLAN  what would close this gap
+  ──────────────────────────────────────────────────────────────
+
+    collect   the ball positions for the frames the tracker did not produce
+    how much  64,643 frames (40.7% of the graded ones), in blackouts of up to 221.5 seconds
+    unlocks   possession inside the blackouts; every other fact in this build already stops at the edge of them
+    by when   the organisers' corrected tracking export, which repairs the same gaps
+
+    1. ask for the corrected tracking export, which the organisers hold
+    2. while waiting, report the gap as a hole rather than filling it in
+    3. re-run this plan afterwards: the same question becomes answerable, with the same evidence packet
+
+========================================================================
+  BEAT 5  the check, and the same answer twice
+========================================================================
+
+  SUPPORTED  Agreement with the organisers' own annotation
+  ──────────────────────────────────────────────────────────────
+    our possession labels agree with the organisers' own phase annotation on 77.6% of the frames covered by 140 mirror pairs.
+
+    mirror pairs                  77.6% over 65,724 frames (140 pairs)
+    build up                      83.2% over 10,677 frames
+    progression                   85.7% over 30,507 frames
+    creating chances              64.4% over 15,616 frames
+    long ball                     69.1% over 9,190 frames
+    attacking transition          66.2% over 8,924 frames
+    ball in final third           68.7% over 54,561 frames
+    ball in the box               63.1% over 26,795 frames
+    players in the box            58.5% over 54,684 frames
+    defending in middle third     85.7% over 30,507 frames
+    defending in defensive third  64.4% over 15,616 frames
+    defending in attacking third  83.2% over 10,677 frames
+    defensive transition          66.2% over 8,924 frames
+    set pieces                    58.4% over 18,469 frames
+    goals                         79.2% over 3,258 frames
+
+    scope                         the whole match
+    coverage                      the annotation is provided data; it is not possession ground truth, and no possession labels were used to build it
+    confidence                    a mirror pair is an attacking code and a defending code over the same window with opposite teams, so the team in possession over that window is stated by the organisers
+    evidence                      638 instances across 14 codes
+
+  computed by deterministic code from the raw tracking; no model wrote this claim
+
+  determinism: the same question, asked twice
+    first  sha256 e4ded0683aca5cdb
+    second sha256 e4ded0683aca5cdb
+    identical — computed, not remembered
+
+  end of demo. 5 beats, 47 lines of evidence.
+
+# recorded from the committed code path; no hand editing

@@ -17,7 +17,7 @@ FRAMES     ?= 199319
 export PYTHONPATH := src
 
 .PHONY: all install install-dev reproduce validate test report clean help ask coverage ledger \
-        external stability dead-onset
+        external stability dead-onset demo
 
 all: test validate
 
@@ -35,6 +35,7 @@ help:
 	@echo "external     the external tuning sweep over Metrica's three sample matches"
 	@echo "stability    the label-free merge-length criterion, on four matches"
 	@echo "dead-onset   the three dead-ball onset rules, and what each costs"
+	@echo "demo         the five-minute pitch, end to end, from the committed code"
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -74,6 +75,10 @@ stability:
 
 dead-onset:
 	$(PYTHON) scripts/dead_onset.py
+
+# The pitch: five beats, deterministic, and it records the fallback transcript.
+demo:
+	$(PYTHON) scripts/demo.py --record docs/demo-transcript.txt
 
 clean:
 	rm -rf artifacts .pytest_cache
