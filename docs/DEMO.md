@@ -111,6 +111,11 @@ replay it.* It is never presented as the demo.
 - [ ] The claim-scoped coverage model **re-run across all ten matches**, and the ledger extended
       to every match. The club's artefact is the ten-match ledger, not this match's. *(blocked:
       the data arrives 26 November)*
-- [ ] Four slides: the problem, the coverage, the refusal, the ledger. *(draftable now)*
+- [x] **Four slides, generated.** `make slides` writes `docs/slides.html` — one self-contained
+      file, no server, no network, no font download, opens with `file://` and prints to PDF from
+      the browser. Every number in it is read from the same code path that answers the questions
+      on stage, so the deck and the demo cannot disagree. Slides: **the problem** (41 % of graded
+      frames), **the scope** (59 / 52 / 93 %), **the refusal with its plan**, **the check**
+      (77.6 %, 74 of 91), **the ledger** (eighteen claims, weakest first).
 - [ ] A rehearsal on a machine that is not the presenter's, with the fallback loaded and ready.
       *(needs a second laptop — yours)*
