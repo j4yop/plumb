@@ -896,6 +896,9 @@ def annotation_agreement(analysis: Analysis, window: str = "all", zone: str = No
         detail.append((code.lower(), "{:.1%} over {:,} frames".format(
             result["agreement"], int(result["frames"]))))
     if pair_result["pairs"]:
+        detail.insert(0, ("independent windows", "{} ({} codes, four of them exact "
+                          "complements of four others)".format(
+                              int(pair_result["pairs"]), len(rows))))
         detail.insert(0, ("over every frame", "{:.1%} of {:,} ({:.0f} pairs)".format(
             pair_result["agreement_all"], int(pair_result["window_frames"]),
             int(pair_result["pairs"]))))
