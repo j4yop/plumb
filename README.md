@@ -182,7 +182,7 @@ docs/
   PLAN.md           the plan, from now to the final pitch
   adr/              decisions that were hard to reverse
 scripts/          diagnostics: what the public labels mean, and what we get wrong
-tests/            158 hermetic tests
+tests/            170 hermetic tests
 ```
 
 ## Getting the data
@@ -208,7 +208,7 @@ cd data && shasum -a 256 -c ../MANIFEST.sha256
 make install     # pip install -e .
 make reproduce   # regenerate artifacts/submission.csv
 make validate    # check it against the official rules
-make test        # 158 tests, under a second
+make test        # 170 tests, under a second
 make report      # the run report: possessions, durations, coverage, phases
 ```
 
