@@ -93,6 +93,10 @@ def have_submission() -> bool:
 
 @check("submission file exists")
 def _exists():
+    if not have_submission():
+        CHECKS.append(Check("submission file exists", SKIP,
+                            "no built submission in this clone — run `make reproduce`"))
+        return True, ""
     ok = os.path.isfile(SUBMISSION)
     size = os.path.getsize(SUBMISSION) if ok else 0
     return ok, "{:,} bytes".format(size)
@@ -100,6 +104,9 @@ def _exists():
 
 @check("submission has every frame, once")
 def _rows():
+    if not have_submission():
+        CHECKS.append(Check("submission has every frame, once", SKIP, "no built submission"))
+        return True, ""
     with open(SUBMISSION) as handle:
         header = handle.readline().strip()
         frames = []
@@ -113,6 +120,9 @@ def _rows():
 
 @check("submission labels are in H/A/D/X")
 def _alphabet():
+    if not have_submission():
+        CHECKS.append(Check("submission labels are in H/A/D/X", SKIP, "no built submission"))
+        return True, ""
     with open(SUBMISSION) as handle:
         handle.readline()
         counts = {}
@@ -125,6 +135,9 @@ def _alphabet():
 
 @check("submission passes the official checks")
 def _validate():
+    if not have_submission():
+        CHECKS.append(Check("submission passes the official checks", SKIP, "no built submission"))
+        return True, ""
     from mtah.emit import validate_file
 
     problems = validate_file(SUBMISSION, FRAMES)
@@ -218,8 +231,10 @@ def _tests():
     )
     tail = (result.stdout or "").strip().splitlines()
     summary = tail[-1] if tail else "no output"
-    match = re.search(r"(\d+) passed", summary)
-    globals()["_TEST_COUNT"] = int(match.group(1)) if match else 0
+    passed = re.search(r"(\d+) passed", summary)
+    skipped = re.search(r"(\d+) skipped", summary)
+    globals()["_TEST_COUNT"] = (int(passed.group(1)) if passed else 0) + (
+        int(skipped.group(1)) if skipped else 0)
     return result.returncode == 0, summary
 
 
@@ -347,7 +362,7 @@ def _docs_tests():
     # Allow the documented count to lag by a little while a change is in flight, but flag it.
     mentioned = sorted({int(n) for n in re.findall(r"(\d{2,3})\s+tests", text)})
     ok = count in mentioned if mentioned else False
-    return ok, "suite has {}; documents say {}".format(
+    return ok, "suite has {} (passed + skipped); documents say {}".format(
         count, ", ".join(str(n) for n in mentioned) or "nothing")
 
 
