@@ -61,7 +61,7 @@ Output rules for the stage, because this is the part that gets rehearsed:
 | **0:40–2:30** | **The refusal.** A question the other finalists would answer confidently and wrongly — per-player attribution (there are no identities), or the shape of the second half's possession (that needs the private, corrected ground truth). The system declines, names the exact missing fields and where they would come from, and offers the nearest answerable proxy with its own weaker coverage. |
 | **2:30–3:30** | Coverage as the *proof behind* the refusal, not as the opening slide: the 41 %, the two stoppages, the warm-up, the identity problem. The broken feed is now the reason the tool exists. **And then the scope: the same coverage asked about the final third (52.1 %) and about the build-up phases (92.7 %).** The tool is not reporting one number about the match; it is reporting the number that belongs to the claim. |
 | **3:30–4:20** | **Close-gap:** what would have to be collected for the refused question to become answerable, with the gap measured — *64,643 frames, 40.7 % of the graded ones, in blackouts of up to 221.5 seconds*. A refusal with a remedy is a roadmap, not a wall. |
-| **4:20–5:00** | **The validation, then determinism.** The organisers' own phase annotation says who had the ball over 140 mirror-paired windows; we agree with it on 77.6 % of those frames, and we reproduce their own count of players in the box exactly 74 times out of 91. Then re-run the identical query with the network off and show byte-identical output. |
+| **4:20–5:00** | **The validation, then determinism.** The organisers' own phase annotation says who had the ball over 140 mirror-paired windows; we agree with it on 70.3 % of every frame in those windows (77.6 % of the frames where we name a team), and we reproduce their own count of players in the box exactly 74 times out of 91. Then re-run the identical query with the network off and show byte-identical output. |
 
 Say the constraint out loud, once, in the first beat: *this data never leaves the laptop; the
 reasoning is deterministic; every answer ships its sources.* It is the credibility beat and it
@@ -96,7 +96,7 @@ replay it.* It is never presented as the demo.
       in the box — each keyed to the organisers' own Smart Tagging codes.
 - [x] **A refusal whose remedy is a collection plan**, with the gap measured in frames and
       seconds rather than described.
-- [x] The **validation against the organisers' own annotation**: 77.6 % agreement over 140
+- [x] The **validation against the organisers' own annotation**: 70.3 % over 140
       mirror-paired windows, and 74 of 91 exact matches on their own count of players in the box.
 - [x] Thirty new tests. 158 in all.
 
@@ -116,6 +116,6 @@ replay it.* It is never presented as the demo.
       the browser. Every number in it is read from the same code path that answers the questions
       on stage, so the deck and the demo cannot disagree. Slides: **the problem** (41 % of graded
       frames), **the scope** (59 / 52 / 93 %), **the refusal with its plan**, **the check**
-      (77.6 %, 74 of 91), **the ledger** (eighteen claims, weakest first).
+      (70.3 %, 74 of 91), **the ledger** (eighteen claims, weakest first).
 - [ ] A rehearsal on a machine that is not the presenter's, with the fallback loaded and ready.
       *(needs a second laptop — yours)*

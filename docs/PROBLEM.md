@@ -97,7 +97,7 @@ Any method, provided it is inspectable and documented, and the labels come from 
 
 | # | Deliverable | What it is | How we satisfy it |
 |---|---|---|---|
-| 1 | **Possession file** | `frame,label` CSV, exactly 199,319 rows, frames 0…199,318 in order, labels in `H A D X`, no blank cells | `src/mtah/write.py` + `src/mtah/validate.py`, checked by the official `validate_submission.py` |
+| 1 | **Possession file** | `frame,label` CSV, exactly 199,319 rows, frames 0…199,318 in order, labels in `H A D X`, no blank cells | `src/mtah/emit.py` + `src/mtah/emit.py`, checked by the official `validate_submission.py` |
 | 2 | **Public repository** | source, pinned dependencies, install/run instructions, the command that regenerates the file | `pyproject.toml` (pinned), `make reproduce`, `MANIFEST.sha256` |
 | 3 | **Technical document** | a few pages: approach and why, assets used and dropped, training data, possession rules implemented, limitations, reproduction | `docs/TECHNICAL.md` |
 

@@ -368,6 +368,62 @@ def test_the_ledger_reports_the_status(analysis):
 
 
 # --------------------------------------------------------------------------------------------------
+# Regressions the review found
+# --------------------------------------------------------------------------------------------------
+
+
+def test_the_cache_is_per_match_and_per_configuration():
+    """One cache file for the tool answered the broadcast question with the tactical numbers."""
+    from plumb.analysis import _cache_path
+    from mtah.config import Config
+
+    tactical = _cache_path(Config(source="tactical"))
+    broadcast = _cache_path(Config(source="broadcast"))
+    elsewhere = _cache_path(Config(data_dir="/somewhere/else"))
+    other_rule = _cache_path(Config(dead_onset="earliest"))
+    assert len({tactical, broadcast, elsewhere, other_rule}) == 4
+
+
+def test_an_explicit_window_reaches_the_router():
+    """`--window first-half` used to produce "in the first-half half" and be ignored."""
+    import argparse
+
+    args = argparse.Namespace(window="first-half", zone=None, phase=None)
+    question = cli._scoped_question(args, "who had more possession")
+    assert router.route(question).window == "first-half"
+    args = argparse.Namespace(window="second-half", zone="attacking-third", phase=None)
+    assert router.route(cli._scoped_question(args, "who had more possession")).window == "second-half"
+
+
+def test_the_annotation_reports_both_denominators():
+    """Abstaining on the hard frames must not raise the headline number."""
+    from mtah.match import Phase
+
+    attacks = [Phase(start=0, end=99, code="PROGRESSION", team="Barcelona", kind="", half="")]
+    labels = np.full(200, 0, dtype=np.int8)
+    labels[50:100] = 2  # we abstain on half the window
+    pairs = [(attacks[0], Phase(start=0, end=99, code="DEFENDING IN MIDDLE THIRD",
+                                team="Atletic Club", kind="", half=""))]
+    names = ("Barcelona", "Atletic Club")
+    result = phases.pair_agreement(pairs, labels, names)
+    assert result["agreement"] == 1.0           # every frame we committed to was right
+    assert result["agreement_all"] == 0.5       # and we only committed to half of them
+    assert result["window_frames"] == 100.0
+
+
+def test_the_cli_calls_an_unavailable_claim_unavailable(analysis):
+    """The renderer must not say SUPPORTED on the fact's behalf."""
+    analysis.phases = []
+    try:
+        fact = FACT_LIBRARY["restarts"](analysis, "all")
+        text = cli.render_fact(fact, cli.Style(enabled=False))
+        assert "UNAVAILABLE" in text
+        assert "SUPPORTED" not in text
+    finally:
+        analysis.phases = []
+
+
+# --------------------------------------------------------------------------------------------------
 # The command surface
 # --------------------------------------------------------------------------------------------------
 

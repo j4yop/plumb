@@ -304,6 +304,10 @@ def dead_ball(analysis: Analysis, window: str = "all", zone: str = None,
     blocks = [
         (a, b) for a, b, label in analysis.spells if label == DEAD and a <= end and b >= start
     ]
+    # The claim is about the dead frames, so its coverage is measured over *those* frames, not
+    # over the window. Measuring it over the window would report 59.3 % for a claim whose own
+    # frames are observed 0.1 % of the time.
+    dead_frames = _scoped_frames(analysis, window, zone, phase) & (analysis.labels == DEAD)
     longest = max(((b - a) / 25.0 for a, b in blocks), default=0.0)
     return Fact(
         id="dead_ball",
@@ -322,7 +326,18 @@ def dead_ball(analysis: Analysis, window: str = "all", zone: str = None,
                    "detected, so this is a lower bound",
         evidence="frames {:,}-{:,}".format(start, end),
         scope=_scope_text(window, zone, phase),
-        coverage_pct=_coverage_pct(analysis, _graded_frames(analysis, window)),
+        # Not the ball: this claim is "the players have stopped", so the ground it needs is the
+        # players being on screen, not the ball being visible. Measuring it on ball observations
+        # would report 0.1 % for a claim that does not depend on them.
+        coverage_pct=(
+            float(analysis.coverage().full_pitch[dead_frames].mean())
+            if dead_frames.any() else 0.0
+        ),
+        coverage_short="{:d} dead frames, {:.0f} % with a full pitch".format(
+            int(dead_frames.sum()),
+            100.0 * float(analysis.coverage().full_pitch[dead_frames].mean())
+            if dead_frames.any() else 0.0,
+        ),
     )
 
 
@@ -808,7 +823,7 @@ def box_presence(analysis: Analysis, window: str = "all", zone: str = None,
     ours = []
     theirs = []
     for instance in phase_tools.by_code(analysis.phases, "PLAYERS IN THE BOX"):
-        team = phase_tools.team_index(instance.team)
+        team = phase_tools.team_index(instance.team, analysis.team_names)
         stated = instance.labels.get("Max Players in the box", "")
         if team < 0 or not stated.isdigit():
             continue
@@ -881,16 +896,21 @@ def annotation_agreement(analysis: Analysis, window: str = "all", zone: str = No
         detail.append((code.lower(), "{:.1%} over {:,} frames".format(
             result["agreement"], int(result["frames"]))))
     if pair_result["pairs"]:
-        detail.insert(0, ("mirror pairs", "{:.1%} over {:,} frames ({:.0f} pairs)".format(
-            pair_result["agreement"], int(pair_result["frames"]), int(pair_result["pairs"]))))
+        detail.insert(0, ("over every frame", "{:.1%} of {:,} ({:.0f} pairs)".format(
+            pair_result["agreement_all"], int(pair_result["window_frames"]),
+            int(pair_result["pairs"]))))
+        detail.insert(1, ("where we name a team", "{:.1%} of {:,}".format(
+            pair_result["agreement"], int(pair_result["frames"]))))
 
-    overall = pair_result["agreement"] if pair_result["frames"] else 0.0
+    overall = pair_result["agreement_all"] if pair_result["frames"] else 0.0
     return Fact(
         id="annotation_agreement",
         title="Agreement with the organisers' own annotation",
-        answer="our possession labels agree with the organisers' own phase annotation on "
-               "{:.1%} of the frames covered by {} mirror pairs.".format(
-                   overall, int(pair_result["pairs"])),
+        answer="over the {:,} frames covered by {} mirror pairs our labels agree with the "
+               "organisers' own annotation on {:.1%}; over the frames where we name a team, "
+               "{:.1%}.".format(
+                   int(pair_result["window_frames"]), int(pair_result["pairs"]),
+                   pair_result["agreement_all"], pair_result["agreement"]),
         detail=detail,
         coverage="the annotation is provided data; it is not possession ground truth, and no "
                  "possession labels were used to build it",
@@ -900,7 +920,8 @@ def annotation_agreement(analysis: Analysis, window: str = "all", zone: str = No
         evidence="{} instances across {} codes".format(
             len(analysis.phases), len({p.code for p in analysis.phases})),
         scope="the whole match",
-        coverage_pct=pair_result["agreement"],
+        coverage_pct=None,
+        coverage_short="an agreement, not a coverage",
     )
 
 

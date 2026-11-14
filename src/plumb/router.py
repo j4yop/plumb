@@ -99,7 +99,7 @@ REFUSAL_RULES: List[Tuple[str, str, List[str], str, str, str, str]] = [
         "questions about the answer key",
         [
             r"\bground truth\b", r"\bthe correct answer\b", r"\bwhat does the referee\b",
-            r"\bthe official labels?\\b", r"\bthe hidden (labels?|truth)\b", r"\bwhat (is|was) the "
+            r"\bthe official labels?\b", r"\bthe hidden (labels?|truth)\b", r"\bwhat (is|was) the "
             r"right (label|answer)\b",
         ],
         "the labels we are scored against are the organisers' *corrected* tracking, which is not "

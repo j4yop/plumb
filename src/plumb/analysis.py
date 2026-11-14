@@ -53,12 +53,11 @@ class Analysis:
             self.set_pieces = []
         if self.phases is None:
             self.phases = []
+        # No literal defaults here: another match's half boundaries are not this match's, and
+        # a default would be silently wrong on nine of ten matches. ``analyse`` always supplies
+        # them; a hand-built Analysis falls back to the graded frames.
         if self.phase_windows is None:
-            self.phase_windows = {
-                "first-half": (11185, 90651),
-                "second-half": (110808, 190197),
-                "halftime": (90652, 110807),
-            }
+            self.phase_windows = {}
         self._coverage = None
         self._geometry = None
 
@@ -110,8 +109,34 @@ def _phase_windows(config: Config, n_frames: int) -> dict:
 
 
 def _cache_path(config: Config) -> str:
+    """A cache file per match and per configuration.
+
+    The cache used to be one file for the whole tool, which was wrong in two ways: asking about
+    the broadcast recording returned the tactical numbers, and on a directory of ten matches the
+    second match would have been answered with the first match's analysis. The key is everything
+    the labels depend on.
+    """
+    import hashlib
+    import json
+
     root = os.environ.get("PLUMB_CACHE_DIR") or "artifacts"
-    return os.path.join(root, "analysis.npz")
+    key = {
+        "source": config.source,
+        "data_dir": os.path.abspath(config.data_dir or "data"),
+        "game": config.game_stem,
+        "control_radius_m": config.control_radius_m,
+        "handover_margin_m": config.handover_margin_m,
+        "min_control_frames": config.min_control_frames,
+        "min_dwell_frames": config.min_dwell_frames,
+        "min_spell_frames": config.min_spell_frames,
+        "dead_onset": config.dead_onset,
+        "dead_movers": config.dead_movers,
+        "dead_detection": config.dead_detection,
+        "first_half_frames": list(config.first_half_frames),
+        "second_half_frames": list(config.second_half_frames),
+    }
+    digest = hashlib.sha256(json.dumps(key, sort_keys=True).encode()).hexdigest()[:16]
+    return os.path.join(root, "analysis-{}.npz".format(digest))
 
 
 def analyse(config: Config, use_cache: bool = True) -> Analysis:

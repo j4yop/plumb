@@ -237,9 +237,9 @@ def build(analysis) -> str:
     entries = []
     for fact_id, function in FACT_LIBRARY.items():
         fact = function(analysis, "all")
-        if fact.status != "supported":
+        if fact.status != "supported" or fact.coverage_pct is None:
             continue
-        pct = 0.0 if fact.coverage_pct is None else 100.0 * fact.coverage_pct
+        pct = 100.0 * fact.coverage_pct
         entries.append((fact_id, pct))
 
     # Weakest first: the ordering is the argument. The top-left row is the claim with the
@@ -331,7 +331,7 @@ def build(analysis) -> str:
             '<div class="cell"><div class="k">within one player</div><div class="v">{box_one}</div>'
             '<div class="n">of the same instances</div></div>'
             "</div>".format(
-                agree=pair_result["agreement"], frames=int(pair_result["frames"]),
+                agree=pair_result["agreement_all"], frames=int(pair_result["window_frames"]),
                 box_exact=box_detail.get("exact match", "—"),
                 box_one=box_detail.get("within one player", "—")),
             4, 5),

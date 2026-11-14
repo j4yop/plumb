@@ -67,14 +67,15 @@ $ plumb ask "who had more possession in the second half?"
 
   SUPPORTED  Possession share (second-half)
   ──────────────────────────────────────────────────────────────
-    Barcelona held the ball for 56.6 % of the live frames.
+    Barcelona held the ball for 59.6 % of the live frames.
 
-    Barcelona      56.6 %
-    Athletic Club  43.4 %
-    live frames    54,226 of 79,390
+    Barcelona     59.6 %
+    Atletic Club  40.4 %
+    live frames   54,223 of 79,390
 
-    coverage       68.3 % of the window's graded frames are live; the ball is observed on 86.7 % of them
-    confidence     56.6 % to 69.9 % — the interval is what the unobserved frames allow
+    scope         in the second half
+    coverage      68.3 % of the window's graded frames are live; the ball is observed on 86.7 % of them
+    confidence    59.6 % to 74.0 % — the interval is what the unobserved frames allow
     evidence       frames 110,808-190,197
 
   computed by deterministic code from the raw tracking; no model wrote this claim
@@ -125,10 +126,15 @@ had the ball, so our labels can be checked against it **without any possession g
 
 | check | result |
 |---|---:|
-| agreement over the 140 mirror pairs | **77.6 %** of 65,724 frames |
+| agreement over the 140 mirror pairs, **every frame in the windows** | **70.3 %** of 72,560 |
+| …and over the frames where we name a team | 77.6 % of 65,724 |
 | `PROGRESSION` phases | 85.7 % |
 | `BUILD UP` phases | 83.2 % |
 | the organisers' own `Max Players in the box`, reproduced exactly | **74 of 91** |
+
+Both denominators are quoted because only one of them is honest on its own: a system that
+abstains on the hard frames raises the second number without getting any better. The first is the
+one to read.
 
 Reading that last annotation took a measurement rather than a guess: "Max Players in the box" is
 the *defending* team's count, its own players in its own penalty area. Counting the tagged team's
@@ -182,7 +188,7 @@ docs/
   PLAN.md           the plan, from now to the final pitch
   adr/              decisions that were hard to reverse
 scripts/          diagnostics: what the public labels mean, and what we get wrong
-tests/            170 hermetic tests
+tests/            174 hermetic tests
 ```
 
 ## Getting the data
@@ -208,7 +214,7 @@ cd data && shasum -a 256 -c ../MANIFEST.sha256
 make install     # pip install -e .
 make reproduce   # regenerate artifacts/submission.csv
 make validate    # check it against the official rules
-make test        # 170 tests, under a second
+make test        # 174 tests, under a second
 make report      # the run report: possessions, durations, coverage, phases
 ```
 

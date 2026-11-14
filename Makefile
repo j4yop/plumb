@@ -17,7 +17,7 @@ FRAMES     ?= 199319
 export PYTHONPATH := src
 
 .PHONY: all install install-dev reproduce validate test report clean help ask coverage ledger \
-        external stability dead-onset demo ledger slides audit
+        external stability dead-onset demo ledger slides audit ledger-set
 
 all: test validate
 
@@ -36,7 +36,7 @@ help:
 	@echo "stability    the label-free merge-length criterion, on four matches"
 	@echo "dead-onset   the three dead-ball onset rules, and what each costs"
 	@echo "demo         the five-minute pitch, end to end, from the committed code"
-	@echo "ledger       the ledger over the three external matches (add GAMES=1,2,3)"
+	@echo "ledger-set   the ledger over a set of matches (the ten-match artefact)"
 	@echo "slides       generate the deck from the live analysis (docs/slides.html)"
 	@echo "audit        check the repository, the submission and the prose against each other"
 
@@ -83,7 +83,7 @@ dead-onset:
 demo:
 	$(PYTHON) scripts/demo.py --record docs/demo-transcript.txt
 
-ledger:
+ledger-set:
 	$(PYTHON) scripts/ledger.py --games 1,2,3 --out artifacts/ledger.md
 
 slides:

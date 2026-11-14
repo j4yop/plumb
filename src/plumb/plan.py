@@ -181,28 +181,32 @@ def _refusal_plan(analysis: Analysis, refusal: Refusal) -> Plan:
 
 
 def _supported_plan(analysis: Analysis, route: Route) -> Plan:
-    """The plan for a question we *can* answer: what would strengthen the answer."""
-    from .facts import FACT_LIBRARY
+    """The plan for a question we *can* answer: what would strengthen the answer.
 
-    fact = FACT_LIBRARY[route.id](analysis, route.window, route.zone)
-    frames = None
+    Measured over the claim's own frames, not the match's: a plan about the final third that
+    quotes the match's coverage is the same category error the facts exist to avoid.
+    """
+    from .facts import FACT_LIBRARY, _scoped_frames
+    from .tactics import tactics_scope
+
+    frames = _scoped_frames(analysis, route.window, route.zone, route.phase)
     size = _gap_sizes(analysis, frames)
-    scope = analysis.coverage().scope()
-    sensitivity = analysis.coverage().sensitivity()
+    scope = analysis.coverage().scope(frames)
+    sensitivity = analysis.coverage().sensitivity(frames)
 
     return Plan(
         collect="nothing — this question is already answerable",
         how_much="the answer rests on {:,} frames; the feed covers {:.1%} of them and the "
                  "tracker is unstable on {:,} of them".format(
                      scope["frames"], scope["ball_visibility"], size["unstable"]),
-        unlocks="the claim is already supported; {:,} frames of the match ({:.1%}) would "
+        unlocks="the claim is already supported; {:,} frames of its own scope ({:.1%}) would "
                 "strengthen it further".format(size["missing"], size["missing_pct"]),
         by_when="the corrected tracking export would close the remaining gap",
         steps=[
             "quote the coverage with the answer, as this build does",
             "if the claim must be carried further, collect the frames where the ball is not "
             "observed",
-            "watch the sensitivity: {:.1%} of the match was decided by less than half a "
-            "metre".format(100.0 * sensitivity),
+            "watch the sensitivity: {:.1%} of the claim's own frames were decided by less "
+            "than half a metre".format(sensitivity),
         ],
     )

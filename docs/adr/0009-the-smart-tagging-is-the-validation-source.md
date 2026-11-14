@@ -49,8 +49,9 @@ wrote down, so we can count the same thing from the tracking and compare.
 
 ## The consequence
 
-**Our possession labels agree with the organisers' own phase annotation on 77.6 % of the frames
-covered by 140 mirror pairs** — 85.7 % on progressions, 83.2 % on build-ups, and the attacking and
+**Our possession labels agree with the organisers' own phase annotation on 70.3 % of the 72,560
+frames covered by 140 mirror pairs**, counting an abstention as wrong — and on 77.6 % of the
+65,724 frames where we name a team. 85.7 % on progressions, 83.2 % on build-ups, and the attacking and
 defending sides of the same mirror pair agreeing to the decimal, which is the strongest internal
 consistency check available.
 

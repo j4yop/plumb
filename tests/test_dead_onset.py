@@ -70,18 +70,30 @@ def test_the_stoppage_is_detected_under_the_default():
     assert (absence[210:280] == STOPPAGE).all()
 
 
-def test_every_rule_finds_the_stoppage():
-    """The rules differ in *when* the period begins, not in whether there is one."""
+def test_the_rules_are_three_distinct_rules():
+    """They differ in *what makes a period dead*, and the distinction has to be real.
+
+    This test used to assert that all three rules found the stoppage. They did — because
+    ``ball_out`` and ``earliest`` were byte-identical branches, so the test was asserting the
+    bug. The stoppage in this synthetic match is players stopping with the ball still inside the
+    pitch, so ``movement`` and ``earliest`` find it and ``ball_out`` must not.
+    """
     from mtah.config import STOPPAGE, OUT_OF_PLAY
 
     config = make_config()
     match = build_match()
+    found = {}
     for rule in ("movement", "ball_out", "earliest"):
         candidate = Config(**{**config.as_dict(), "dead_onset": rule})
         absence = absence_classes(candidate, match)
         dead = np.isin(absence, (STOPPAGE, OUT_OF_PLAY))
-        assert dead[210:280].all(), rule
-        assert dead.sum() >= 100, rule
+        found[rule] = bool(dead[210:280].all())
+
+    assert found["movement"], "the whistle rule must find a stoppage"
+    assert found["earliest"], "the most inclusive rule must find it too"
+    assert not found["ball_out"], (
+        "the ball never left the pitch, so 'out of play' must not call this dead"
+    )
 
 
 def test_the_rules_are_configurable_and_the_default_is_unchanged():

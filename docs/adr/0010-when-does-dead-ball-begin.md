@@ -39,11 +39,35 @@ Tagging's 140 mirror pairs, which state who had the ball without any possession 
 | rule | possessions | mean length | dead frames | mirror-pair agreement |
 |---|---:|---:|---:|---:|
 | `movement` (default) | 306 | 14.2 s | 48,755 (30.7 %) | **77.6 %** |
-| `ball_out` | 305 | 14.1 s | 49,875 (31.4 %) | 77.4 % |
 | `earliest` | 305 | 14.1 s | 49,875 (31.4 %) | 77.4 % |
+| `ball_out` | 206 | 29.2 s | 8,530 (5.4 %) | 75.6 % |
 
-And on the public five minutes, for information only and never for selection, **all three score
-identically**: `macroF1` 0.6878, `spellF1` 0.5000, fifteen possessions.
+And on the public five minutes, for information only and never for selection:
+
+| rule | macroF1 | spellF1 | possessions |
+|---|---:|---:|---:|
+| `movement` (default) | 0.6878 | **0.5000** | 15 |
+| `earliest` | 0.6878 | **0.5000** | 15 |
+| `ball_out` | 0.5284 | 0.4903 | 14 |
+
+## The bug this section used to contain
+
+The first version of the rule had `ball_out` and `earliest` as byte-identical branches. Both
+meant "out of play **or** the players stopped", so the table showed them agreeing on every
+figure and the test asserted that all three rules found a stoppage — **the test was asserting
+the bug**.
+
+The three rules are now genuinely distinct, and the distinction is informative. `ball_out` on its
+own marks only **5.4 %** of the match dead, because most stoppages are not the ball leaving the
+pitch — the tracker simply loses it while the players stand still. That is why it scores worse
+than the other two: the missing frames then carry possession forward and the spells run to a mean
+of 29.2 s.
+
+So the data answers the organisers' question even though the organisers did not. A rule keyed
+only to the ball leaving play recovers a sixth of the dead time the match visibly contains, so it
+cannot be the rule the ground truth uses. The onset that fits is the one that waits for the
+players to stop — which is what the shipped default does, and what `earliest` reduces to in
+practice (the two differ by 1,120 frames and one possession).
 
 ## The conclusion, and why it matters
 

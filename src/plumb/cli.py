@@ -61,9 +61,16 @@ def _rule(style: Style, character: str = "─", width: int = 62) -> str:
 
 
 def render_fact(fact: Fact, style: Style, extra_lines: Optional[List[str]] = None) -> str:
-    """A supported answer: the claim, the grounds, the provenance."""
+    """A supported answer: the claim, the grounds, the provenance.
+
+    A claim the match cannot carry at all is not "supported at zero" — it is unavailable, and
+    the header has to say so or the renderer is lying on the fact's behalf.
+    """
+    unavailable = getattr(fact, "status", "supported") != "supported"
     lines = [
-        "  {}  {}".format(style.green("SUPPORTED"), style.bold(fact.title)),
+        "  {}  {}".format(
+            style.amber("UNAVAILABLE") if unavailable else style.green("SUPPORTED"),
+            style.bold(fact.title)),
         "  " + _rule(style),
         "    " + fact.answer,
         "",
@@ -150,7 +157,9 @@ def render_ledger(analysis: Analysis, style: Style) -> str:
         except Exception as error:  # a broken fact must not hide the rest of the ledger
             rows.append((fact_id, "could not be computed: {}".format(error), "—", style.red("error")))
             continue
-        rows.append((fact_id, _one_line(fact.answer), fact.coverage_short, style.green("supported")))
+        status = (style.green("supported") if getattr(fact, "status", "supported") == "supported"
+                  else style.amber(fact.status))
+        rows.append((fact_id, _one_line(fact.answer), fact.coverage_short, status))
 
     lines = [
         "  {}  {}".format(style.bold("LEDGER"), style.dim("every claim this build makes about the match")),
@@ -334,16 +343,22 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     ask = sub.add_parser("ask", help="ask a question about the match")
     ask.add_argument("question")
+    ask.add_argument("--json", action="store_true", dest="as_json",
+                     default=argparse.SUPPRESS, help="machine-readable output")
     ask.add_argument("--window", default=None, help="first-half | second-half | halftime | all")
     ask.add_argument("--zone", default=None, help="the part of the pitch the claim is about")
     ask.add_argument("--phase", default=None, help="a Smart Tagging code, e.g. 'BUILD UP'")
     why = sub.add_parser("why", help="why the answer holds, or why it cannot")
     why.add_argument("question")
+    why.add_argument("--json", action="store_true", dest="as_json",
+                     default=argparse.SUPPRESS, help="machine-readable output")
     why.add_argument("--window", default=None, help="first-half | second-half | halftime | all")
     why.add_argument("--zone", default=None, help="the part of the pitch the claim is about")
     why.add_argument("--phase", default=None, help="a Smart Tagging code, e.g. 'BUILD UP'")
     close = sub.add_parser("close-gap", help="what would have to be collected to answer it")
     close.add_argument("question")
+    close.add_argument("--json", action="store_true", dest="as_json",
+                       default=argparse.SUPPRESS, help="machine-readable output")
     close.add_argument("--window", default=None, help="first-half | second-half | halftime | all")
     close.add_argument("--zone", default=None, help="the part of the pitch the claim is about")
     close.add_argument("--phase", default=None, help="a Smart Tagging code, e.g. 'BUILD UP'")
@@ -357,11 +372,19 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+WINDOW_PHRASE = {
+    "first-half": "in the first half",
+    "second-half": "in the second half",
+    "halftime": "at half time",
+    "all": "over the whole match",
+}
+
+
 def _scoped_question(args, question: str) -> str:
     """Fold an explicit window or zone into the question, so the router sees it."""
     additions = []
     if getattr(args, "window", None):
-        additions.append("in the {} half".format(args.window))
+        additions.append(WINDOW_PHRASE.get(args.window, "in the {}".format(args.window)))
     if getattr(args, "zone", None):
         additions.append("in the {}".format(args.zone.replace("-", " ")))
     if getattr(args, "phase", None):

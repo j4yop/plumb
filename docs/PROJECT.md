@@ -114,7 +114,8 @@ pieces — it is 638 instances over fourteen codes, and for 140 windows it pairs
 with a defending code over the same interval and opposite teams. That states who had the ball
 without any possession ground truth being involved.
 
-- our possession labels agree with it on **77.6 %** of the frames those 140 pairs cover;
+- our possession labels agree with it on **70.3 %** of the 72,560 frames those 140 pairs cover,
+  counting an abstention as wrong — and 77.6 % of the frames where we name a team;
 - **85.7 %** on progressions, **83.2 %** on build-ups;
 - we reproduce the organisers' own `Max Players in the box` count **exactly in 74 of 91** tagged
   instances, and within one player in **90**.

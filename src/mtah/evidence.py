@@ -202,13 +202,11 @@ def build_evidence(match, config: Config, teams: np.ndarray = None) -> Evidence:
         stopped = moving[frame] <= config.dead_movers
         out = bool(out_of_play[frame])
         if config.dead_onset == "ball_out":
-            if out:
-                absence[frame] = OUT_OF_PLAY
-            elif stopped:
-                absence[frame] = STOPPAGE
-            else:
-                absence[frame] = OCCLUSION
+            # The ball's last observed position is outside the pitch: out of play, whatever the
+            # players are doing. A live occlusion is not enough.
+            absence[frame] = OUT_OF_PLAY if out else OCCLUSION
         elif config.dead_onset == "earliest":
+            # Either signal fires: the most inclusive rule, and the closest to the infringement.
             if out:
                 absence[frame] = OUT_OF_PLAY
             elif stopped:

@@ -128,9 +128,11 @@ def attacking_sides(analysis: Analysis) -> np.ndarray:
     n = analysis.n_frames
     result = np.zeros(n, dtype=bool)
 
+    # The match's own halves. Hard-coding this match's boundaries made the direction a guess on
+    # any other match, which would silently flip progression and chance creation.
     halves = [
-        (11185, 90651),
-        (110808, 190197),
+        analysis.phase_windows.get("first-half", (0, n - 1)),
+        analysis.phase_windows.get("second-half", (0, n - 1)),
     ]
     for lo, hi in halves:
         lo = max(0, lo)

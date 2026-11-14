@@ -47,7 +47,7 @@ arrive until 26 November, so there is nothing to build against.
       shape, transitions, long balls, players in the box — each keyed to the organisers' own
       Smart Tagging codes.
 - [x] The **validation source found**: the Smart Tagging's 140 mirror pairs state who had the
-      ball over 65,724 frames, and we agree with them on 77.6 %. We reproduce the organisers' own
+      ball over 72,560 frames, and we agree with them on 70.3 %. We reproduce the organisers' own
       count of players in the box exactly 74 times out of 91. ADR 0009.
 - [x] The **refusal gate with collection plans** (`src/plumb/plan.py`): the gap measured in frames
       and seconds, not described.

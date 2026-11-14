@@ -70,7 +70,10 @@ already resolved. Two things are deliberately *not* left to the caller:
   rather than hard-coding "the first 24 slots are home" means a change in the export cannot invert
   the sides silently — a side swap is invisible in a dashboard and fatal to a score.
 
-**The evidence seam (`mtah.evidence`).** Coordinates never travel past this module. What comes out
+**The evidence seam (`mtah.evidence`).** In the possession pipeline, coordinates never travel
+past this module: everything downstream reads distances, counts and classifications. (The claims
+engine is the exception, and deliberately so: a shape has to be measured from positions, so
+`plumb.tactics` reads `player_xy` directly. It never writes back.) What comes out
 is quantities a football person can reason about: metres to the ball for each team, how many
 players are running, which phase the frame is in, and why the ball is missing.
 

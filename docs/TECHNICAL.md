@@ -164,9 +164,13 @@ labels and no video anywhere in the criterion.
 As a check that covers the whole match, we used the organisers' own Smart Tagging. For **140**
 windows it contains an attacking code and a defending code over the *same* interval with
 *opposite* teams, so the team in possession during those intervals is known. Our labels agree with
-it on **77.6 %** of the 65,724 frames those windows cover — 85.7 % on `PROGRESSION`, 83.2 % on
-`BUILD UP` — and the attacking and defending sides of a mirror pair agree to the decimal, which is
-the strongest internal consistency check available. That is a full-match check that uses no
+it on **70.3 %** of the 72,560 frames those windows cover, counting an abstention as wrong — and
+77.6 % of the 65,724 frames where we name a team. 85.7 % on `PROGRESSION`, 83.2 % on `BUILD UP`.
+The attacking and defending sides of a mirror pair agree to the decimal, which is the strongest
+internal consistency check available.
+
+Both denominators are quoted because a system that abstains on the hard frames raises the second
+without getting any better. The first is the one to read. That is a full-match check that uses no
 possession ground truth and none of the five public minutes.
 
 ## 6. The possession rules as implemented
@@ -281,7 +285,8 @@ possession ground truth**.
 
 | check | result |
 |---|---:|
-| agreement over the 140 mirror pairs | **77.6 %** of 65,724 frames |
+| agreement over the 140 mirror pairs, **every frame in the windows** | **70.3 %** of 72,560 |
+| …over the frames where we name a team | 77.6 % of 65,724 |
 | agreement on `PROGRESSION` phases | 85.7 % of 30,507 frames |
 | agreement on `BUILD UP` phases | 83.2 % of 10,677 frames |
 | the attacking and defending sides of a mirror pair | agree to the decimal |
@@ -371,7 +376,7 @@ pip install -r requirements.txt
 export MTAH_DATA_DIR=/path/to/the/unpacked/bundle
 make reproduce        # artifacts/submission.csv
 make validate         # the official checks
-make test             # 170 tests
+make test             # 174 tests
 ```
 
 The repository contains the code, the pinned dependencies and the documentation. It does **not**

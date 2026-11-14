@@ -108,15 +108,6 @@ class Coverage:
             return 0.0
         return float((self.decision_margin[alive] < sigma).mean())
 
-    def jitter(self, frames: Optional[np.ndarray] = None, sigma: float = 0.5) -> float:
-        """The widest band the answer could take if the tracking were off by ``sigma`` metres.
-
-        Unlike :meth:`sensitivity`, which counts *frames*, this is a number the same shape as the
-        claim: the share of the scoped frames whose ownership could flip.
-        """
-        return self.sensitivity(frames, sigma)
-
-
 def build_coverage(analysis) -> Coverage:
     """Compute the per-frame quality of the tracking."""
     match_ball = analysis.ball_xy

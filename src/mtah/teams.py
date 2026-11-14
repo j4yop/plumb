@@ -9,11 +9,15 @@ most often the nearest player to the ball in the opening minutes contradicts the
 labels for a large part of the match, and it is exactly the slot that decides the kickoff
 possession.
 
-The fix uses no labels at all: **a player is on the team its neighbours are on.** Each slot is
-assigned, frame by frame, by the majority vote of its *k* nearest spatial neighbours, using the
-metadata assignment only as the starting point. A slot that has swapped identity is surrounded
-by its new team-mates, so the vote follows it; a slot that has merely strayed near the opponent
-is still surrounded by its own team, so the vote keeps it where it belongs.
+**This did not work, and it is switched off.** The idea was that a player is on the team its
+neighbours are on: assign each slot, frame by frame, by the majority vote of its *k* nearest
+spatial neighbours, using the metadata assignment only as the starting point.
+
+Measured against the organisers' labels it changes 13 % of slot-frames, and it takes the
+possession score from 0.5000 to 0.0273 — it recovers a left/right partition of the pitch rather
+than two teams, and it inverts the possession. ``Config.neighbour_team_voting`` defaults to
+False and the pipeline uses the metadata assignment (ADR 0005). The module is kept because the
+negative result is worth having.
 
 The interface is one function and one array: :func:`assign_teams` returns, for every frame and
 every slot, the team it belongs to.

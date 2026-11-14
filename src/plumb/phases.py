@@ -175,9 +175,21 @@ def mirror_pairs(phases: List[Phase],
 
 def pair_agreement(pairs: List[Tuple[Phase, Phase]], labels: np.ndarray,
                    team_names: Tuple[str, str] = ("Barcelona", "Atletic Club")) -> Dict[str, float]:
-    """Agreement with the mirror pairs, which are the strongest statement available."""
-    total = 0
-    agree = 0
+    """Agreement with the mirror pairs, which are the strongest statement available.
+
+    Two denominators, and the difference matters. ``agreement`` is over the frames where we said
+    a team had the ball — the conventional "accuracy where the system commits". ``agreement_all``
+    is over **every** frame in the windows, counting an abstention (a `D` or `X` label) as wrong.
+
+    The first number is the flattering one and it used to be reported alone. A system that
+    abstains on the hard frames can raise it without getting any better, which is precisely the
+    circularity this project exists to avoid, so both are reported and the documents quote the
+    honest one first.
+    """
+    labelled_total = 0
+    labelled_agree = 0
+    all_total = 0
+    all_agree = 0
     for attack, defence in pairs:
         attack_team = team_index(attack.team, team_names)
         if attack_team < 0:
@@ -188,10 +200,14 @@ def pair_agreement(pairs: List[Tuple[Phase, Phase]], labels: np.ndarray,
             continue
         block = labels[lo:hi + 1]
         alive = (block == 0) | (block == 1)
-        total += int(alive.sum())
-        agree += int((block[alive] == attack_team).sum())
+        labelled_total += int(alive.sum())
+        labelled_agree += int((block[alive] == attack_team).sum())
+        all_total += int(block.size)
+        all_agree += int((block == attack_team).sum())
     return {
         "pairs": float(len(pairs)),
-        "frames": float(total),
-        "agreement": (agree / total) if total else 0.0,
+        "frames": float(labelled_total),
+        "window_frames": float(all_total),
+        "agreement": (labelled_agree / labelled_total) if labelled_total else 0.0,
+        "agreement_all": (all_agree / all_total) if all_total else 0.0,
     }

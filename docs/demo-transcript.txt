@@ -82,9 +82,10 @@
 
   SUPPORTED  Agreement with the organisers' own annotation
   ──────────────────────────────────────────────────────────────
-    our possession labels agree with the organisers' own phase annotation on 77.6% of the frames covered by 140 mirror pairs.
+    over the 72,560 frames covered by 140 mirror pairs our labels agree with the organisers' own annotation on 70.3%; over the frames where we name a team, 77.6%.
 
-    mirror pairs                  77.6% over 65,724 frames (140 pairs)
+    over every frame              70.3% of 72,560 (140 pairs)
+    where we name a team          77.6% of 65,724
     build up                      83.2% over 10,677 frames
     progression                   85.7% over 30,507 frames
     creating chances              64.4% over 15,616 frames
@@ -115,7 +116,7 @@
   end of demo. 5 beats, 47 lines of evidence.
 
   recorded from
-    commit      9e26689
+    commit      4734883
     data        MANIFEST.sha256, sha256 c8b857e7d2b3ef59
 
 # recorded from the committed code path; no hand editing

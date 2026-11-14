@@ -383,12 +383,12 @@ def build_spells(owners: np.ndarray, evidence, config: Config,
             labels[start:stop] = previous
             continue
 
-        if previous == following:
-            # A blip between two stretches of the same team.
-            labels[start:stop] = previous
-        else:
-            # Different neighbours: the short run loses to the established possession.
-            labels[start:stop] = previous
+        # A short run is absorbed into the possession before it, whichever neighbour it is
+        # between. This is the rule TECHNICAL §6 states: a change that lasts less than a second
+        # is not a possession change. (The *episode* stage above is different: there a short
+        # episode loses to the longer of its two neighbours, because an episode is a candidate
+        # possession rather than a blip in a settled one.)
+        labels[start:stop] = previous
 
     if config.smoothing_window_frames > 1:
         labels = _majority_smooth(labels, config.smoothing_window_frames)
