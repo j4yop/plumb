@@ -183,6 +183,8 @@ def zone_mask(
     zone: str,
     length_m: float,
     width_m: float,
+    penalty_depth_m: float = 16.5,
+    penalty_half_width_m: float = 20.3,
 ) -> np.ndarray:
     """Frames whose ball is in a named zone, relative to the team in possession.
 
@@ -212,10 +214,12 @@ def zone_mask(
     if zone == "centre":
         return inside_width & (y > width_m / 3) & (y < 2 * width_m / 3)
     if zone == "box":
-        return (progress > length_m - 16.5) & (np.abs(y - width_m / 2) < 20.3)
+        return (progress > length_m - penalty_depth_m) & (
+            np.abs(y - width_m / 2) < penalty_half_width_m)
     raise ValueError("unknown zone: {}".format(zone))
 
 
+# The zone names ``zone_mask`` accepts. Kept next to it so a caller can validate an argument.
 ZONES = (
     "defensive-third",
     "middle-third",

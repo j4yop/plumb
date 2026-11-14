@@ -70,7 +70,6 @@ COUNTER_PRESS_SECONDS = 10.0
 RESTART_RETENTION_SECONDS = 10.0
 # How fast a restart has to turn over to count as lost quickly.
 RESTART_QUICK_LOSS_SECONDS = 3.0
-FPS = 25.0
 # Frames processed at a time.
 CHUNK = 20000
 
@@ -210,6 +209,8 @@ def tactics_scope(analysis: Analysis, zone: str) -> np.ndarray:
         zone,
         analysis.pitch_length_m,
         analysis.pitch_width_m,
+        analysis.penalty_area_depth_m,
+        analysis.penalty_area_half_width_m,
     )
 
 
@@ -272,9 +273,9 @@ def restarts(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
             retained[taker] += 1
             continue
         held = spells[index][1] - first
-        if held >= RESTART_RETENTION_SECONDS * FPS:
+        if held >= RESTART_RETENTION_SECONDS * analysis.fps:
             retained[taker] += 1
-        elif held <= RESTART_QUICK_LOSS_SECONDS * FPS:
+        elif held <= RESTART_QUICK_LOSS_SECONDS * analysis.fps:
             quick_loss[taker] += 1
 
     def kept_rate(kept: int, total: int) -> float:
@@ -357,12 +358,12 @@ def pressing(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
     del near
 
     # Closing speed: how fast the press is reducing the distance to the ball, over a second.
-    half = int(FPS / 2)
+    half = int(analysis.fps / 2)
     padded = np.concatenate([
         np.full(half, np.inf), press_distance, np.full(half, np.inf)
     ])
     with np.errstate(invalid="ignore"):
-        closing = (padded[:-2 * half] - padded[2 * half:]) / (2.0 * half / FPS)
+        closing = (padded[:-2 * half] - padded[2 * half:]) / (2.0 * half / analysis.fps)
     closing[~np.isfinite(closing)] = np.nan
 
     possessions = [
@@ -399,7 +400,7 @@ def pressing(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
             continue
         hard += 1
         close_at = a + int(np.nanargmin(np.where(np.isfinite(window), window, np.inf)))
-        horizon = min(n - 1, close_at + int(5 * FPS))
+        horizon = min(n - 1, close_at + int(5 * analysis.fps))
         later = _next_alive(analysis, alive, close_at + 1)
         if later >= 0 and later <= horizon and int(analysis.labels[later]) != label:
             won += 1
@@ -562,11 +563,11 @@ def defending(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
 
             # Players in the penalty area the team is attacking: the box is at the far end of
             # the team's own progress axis.
-            far = analysis.pitch_length_m - 16.5
+            far = analysis.pitch_length_m - analysis.penalty_area_depth_m
             in_the_box = (
                 good
                 & (progress > far)
-                & (np.abs(y - analysis.pitch_width_m / 2) < 20.3)
+                & (np.abs(y - analysis.pitch_width_m / 2) < analysis.penalty_area_half_width_m)
             )
             box_count = in_the_box.sum(axis=1).astype(np.float32)
 
@@ -653,14 +654,14 @@ def transitions(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tactic:
         if label == previous_label:
             continue
         losses += 1
-        horizon = min(n - 1, a + int(COUNTER_PRESS_SECONDS * FPS))
+        horizon = min(n - 1, a + int(COUNTER_PRESS_SECONDS * analysis.fps))
         later = [
             (aa, bb, ll) for aa, bb, ll in possessions
             if aa > previous_b and aa <= horizon
         ]
         if later and later[0][2] == previous_label:
             regains += 1
-            regain_times.append((later[0][0] - previous_b) / FPS)
+            regain_times.append((later[0][0] - previous_b) / analysis.fps)
 
     detail = [
         ("possessions", str(len(possessions))),
@@ -711,7 +712,7 @@ def chance_creation(analysis: Analysis, mask: np.ndarray, geo: Geometry) -> Tact
 
     live = _alive(analysis, mask) & analysis.evidence.ball_present
     final_third = live & (progress_x > 2 * length / 3)
-    box = live & (progress_x > length - 16.5) & (np.abs(analysis.ball_xy[:, 1] - width / 2) < 20.3)
+    box = live & (progress_x > length - analysis.penalty_area_depth_m) & (np.abs(analysis.ball_xy[:, 1] - width / 2) < analysis.penalty_area_half_width_m)
 
     possessions = [
         (a, b, label)

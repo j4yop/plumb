@@ -150,17 +150,10 @@ def _reproducible():
         CHECKS.append(Check("the submission is reproducible byte for byte", SKIP,
                             "needs the licensed bundle (MTAH_DATA_DIR) and a built submission"))
         return True, ""
-    from mtah.decide import assign_owners, build_spells
     from mtah.emit import write_submission
-    from mtah.evidence import build_evidence
-    from mtah.match import load_match
-    from mtah.config import Config
+    from mtah.pipeline import run as run_pipeline
 
-    config = Config(data_dir=os.environ.get("MTAH_DATA_DIR") or os.path.join(ROOT, "data"))
-    match = load_match(config)
-    evidence = build_evidence(match, config)
-    owners, episodes = assign_owners(evidence, config)
-    decision = build_spells(owners, evidence, config, episodes=episodes)
+    match, _evidence, decision = run_pipeline(_config())
     fresh = os.path.join(ROOT, "artifacts", "_audit.csv")
     write_submission(fresh, decision.labels)
     with open(fresh, "rb") as a, open(SUBMISSION, "rb") as b:

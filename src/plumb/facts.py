@@ -108,13 +108,11 @@ def _unobserved_alive(analysis: Analysis, window: str) -> np.ndarray:
     return alive & ~analysis.evidence.ball_present
 
 
-def _share_interval(counts: np.ndarray, total: int, unobserved: int) -> Tuple[float, float]:
+def _share_interval(count: int, total: int, unobserved: int) -> Tuple[float, float]:
     """Worst-case interval for a proportion, given the frames we cannot see."""
     if total <= 0:
         return 0.0, 0.0
-    low = counts[0] / total
-    high = (counts[0] + unobserved) / total
-    return low, high
+    return count / total, (count + unobserved) / total
 
 
 def _fmt_pct(value: float) -> str:
@@ -220,7 +218,7 @@ def possession_share(analysis: Analysis, window: str = "all", zone: str = None,
             scope=_scope_text(window, zone),
         )
 
-    low, high = _share_interval(np.array([home, away]), total, unobserved)
+    low, high = _share_interval(home, total, unobserved)
     share = home / total
     graded = int(_graded_frames(analysis, window).sum())
     coverage = total / graded if graded else 0.0
@@ -261,7 +259,7 @@ def possession_count(analysis: Analysis, window: str = "all", zone: str = None,
         if zone_mask is not None and not zone_mask[a:min(b, analysis.n_frames)].any():
             continue
         spells.append((a, b, label))
-    durations = [(b - a) / 25.0 for a, b, _ in spells]
+    durations = [(b - a) / analysis.fps for a, b, _ in spells]
     unobserved = int(_unobserved_alive(analysis, window).sum())
     graded = int(_graded_frames(analysis, window).sum())
 
@@ -308,12 +306,12 @@ def dead_ball(analysis: Analysis, window: str = "all", zone: str = None,
     # over the window. Measuring it over the window would report 59.3 % for a claim whose own
     # frames are observed 0.1 % of the time.
     dead_frames = _scoped_frames(analysis, window, zone, phase) & (analysis.labels == DEAD)
-    longest = max(((b - a) / 25.0 for a, b in blocks), default=0.0)
+    longest = max(((b - a) / analysis.fps for a, b in blocks), default=0.0)
     return Fact(
         id="dead_ball",
         title="Dead ball ({})".format(window),
         answer="{} of the window's graded frames are dead ball — {}.".format(
-            "{:,}".format(dead), "{:.0f} seconds".format(dead / 25.0)
+            "{:,}".format(dead), "{:.0f} seconds".format(dead / analysis.fps)
         ),
         detail=[
             ("dead frames", "{:,} of {:,}".format(dead, total)),
@@ -358,7 +356,7 @@ def longest_possession(analysis: Analysis, window: str = "all", zone: str = None
             scope=_scope_text(window, zone, phase),
         )
     a, b, label = max(spells, key=lambda s: s[1] - s[0])
-    duration = (b - a) / 25.0
+    duration = (b - a) / analysis.fps
     unobserved = int(_unobserved_alive(analysis, window).sum())
     return Fact(
         id="longest_possession",
@@ -387,7 +385,7 @@ def ball_visibility(analysis: Analysis, window: str = "all", zone: str = None,
     total = int(graded.sum())
     seen = int((analysis.evidence.ball_present & graded).sum())
     share = seen / total if total else 0.0
-    gaps = _longest_gaps(graded, analysis.evidence.ball_present)
+    gaps = _longest_gaps(graded, analysis.evidence.ball_present, analysis.fps)
     scope = analysis.coverage().scope(graded)
     return Fact(
         id="ball_visibility",
@@ -411,7 +409,8 @@ def ball_visibility(analysis: Analysis, window: str = "all", zone: str = None,
     )
 
 
-def _longest_gaps(graded: np.ndarray, ball_present: np.ndarray) -> Tuple[int, float]:
+def _longest_gaps(graded: np.ndarray, ball_present: np.ndarray,
+                  fps: float = 25.0) -> Tuple[int, float]:
     """The longest stretch of frames in the scope with no ball observation."""
     missing = graded & ~ball_present
     best_length = 0
@@ -425,7 +424,7 @@ def _longest_gaps(graded: np.ndarray, ball_present: np.ndarray) -> Tuple[int, fl
                 best_start = index - run + 1
         else:
             run = 0
-    return best_start, best_length / 25.0
+    return best_start, best_length / fps
 
 
 def possession_changes(analysis: Analysis, window: str = "all", zone: str = None,
@@ -475,7 +474,7 @@ def ball_thirds(analysis: Analysis, window: str = "all", zone: str = None,
             "No live frames.",
             scope=_scope_text(window, zone),
         )
-    length = 105.3
+    length = analysis.pitch_length_m
     x = analysis.ball_xy[:, 0]
     third = np.where(x < length / 3, 0, np.where(x < 2 * length / 3, 1, 2))
     names = ("defensive third", "middle third", "attacking third")
@@ -742,7 +741,7 @@ def long_ball(analysis: Analysis, window: str = "all", zone: str = None,
     if not alive.any():
         return Fact("long_ball", "Long balls", "No live frames.", scope=_scope_text(window))
 
-    speed = np.abs(np.gradient(analysis.ball_xy[:, 0])) * 25.0
+    speed = np.abs(np.gradient(analysis.ball_xy[:, 0])) * analysis.fps
     speed[~alive] = np.nan
     long_balls = alive & (speed > 15.0)  # 15 m/s is a long ball; 54 km/h
 
@@ -814,8 +813,8 @@ def box_presence(analysis: Analysis, window: str = "all", zone: str = None,
         progress = np.where(analysis.teams[lo:hi] == HOME, home_progress, away_progress)
         in_own_box = (
             np.isfinite(progress)
-            & (progress < 16.5)
-            & (np.abs(analysis.player_xy[lo:hi, :, 1] - width / 2) < 20.3)
+            & (progress < analysis.penalty_area_depth_m)
+            & (np.abs(analysis.player_xy[lo:hi, :, 1] - width / 2) < analysis.penalty_area_half_width_m)
         )
         home_in_box[lo:hi] = (in_own_box & (analysis.teams[lo:hi] == HOME)).sum(axis=1).astype(np.int16)
         away_in_box[lo:hi] = (in_own_box & (analysis.teams[lo:hi] == AWAY)).sum(axis=1).astype(np.int16)
@@ -880,25 +879,25 @@ def annotation_agreement(analysis: Analysis, window: str = "all", zone: str = No
             scope="the whole match",
             status="unavailable",
         )
+    # Only the independent codes: four of the fourteen are complements of four others, and
+    # counting them twice would overstate the evidence fourfold.
     rows = []
-    for code in phase_tools.ALL_CODES:
-        result = phase_tools.agreement(analysis.phases, code, analysis.labels)
+    for code in phase_tools.independent_codes():
+        result = phase_tools.agreement(analysis.phases, code, analysis.labels, analysis.team_names)
         if not result["instances"]:
             continue
-        expected_is_attacker = code in phase_tools.ATTACKING_CODES or code in phase_tools.RESTART_CODES
-        rows.append((code, result, expected_is_attacker))
+        rows.append((code, result))
 
     pairs = phase_tools.mirror_pairs(analysis.phases, analysis.team_names)
     pair_result = phase_tools.pair_agreement(pairs, analysis.labels, analysis.team_names)
 
     detail = []
-    for code, result, _ in rows:
+    for code, result in rows:
         detail.append((code.lower(), "{:.1%} over {:,} frames".format(
             result["agreement"], int(result["frames"]))))
     if pair_result["pairs"]:
-        detail.insert(0, ("independent windows", "{} ({} codes, four of them exact "
-                          "complements of four others)".format(
-                              int(pair_result["pairs"]), len(rows))))
+        detail.insert(0, ("independent codes", "{} (four more are complements)".format(
+            len(rows))))
         detail.insert(0, ("over every frame", "{:.1%} of {:,} ({:.0f} pairs)".format(
             pair_result["agreement_all"], int(pair_result["window_frames"]),
             int(pair_result["pairs"]))))

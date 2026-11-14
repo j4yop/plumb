@@ -169,6 +169,7 @@ src/mtah/
   decide.py      ownership, spells, abstentions                (deep module)
   emit.py        write the submission and check it against the official rules
   report.py      what the submission says about itself
+  pipeline.py    one way to run the three stages
   run.py         the command line
 src/plumb/
   analysis.py    the possession engine, kept in memory and cached
@@ -188,7 +189,7 @@ docs/
   PLAN.md           the plan, from now to the final pitch
   adr/              decisions that were hard to reverse
 scripts/          diagnostics: what the public labels mean, and what we get wrong
-tests/            174 hermetic tests
+tests/            176 hermetic tests
 ```
 
 ## Getting the data
@@ -214,7 +215,7 @@ cd data && shasum -a 256 -c ../MANIFEST.sha256
 make install     # pip install -e .
 make reproduce   # regenerate artifacts/submission.csv
 make validate    # check it against the official rules
-make test        # 174 tests, under a second
+make test        # 176 tests, under a second
 make report      # the run report: possessions, durations, coverage, phases
 ```
 

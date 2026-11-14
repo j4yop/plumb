@@ -49,8 +49,7 @@ import numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
 
 from mtah.config import AWAY, DEAD, HOME, Config
-from mtah.decide import assign_owners, build_spells
-from mtah.evidence import build_evidence
+from mtah.pipeline import decide
 from mtah.match import load_match
 from plumb import phases as phase_tools
 
@@ -60,9 +59,7 @@ RULES = ("movement", "ball_out", "earliest")
 def measure(config: Config) -> Dict[str, float]:
     """Everything the three rules are compared on."""
     match = load_match(config)
-    evidence = build_evidence(match, config)
-    owners, episodes = assign_owners(evidence, config)
-    decision = build_spells(owners, evidence, config, episodes=episodes)
+    evidence, decision = decide(match, config)
 
     labels = decision.labels
     graded = evidence.graded

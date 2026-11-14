@@ -79,7 +79,7 @@ def _gap_sizes(analysis: Analysis, frames: Optional[np.ndarray] = None) -> dict:
         "frames": total,
         "missing": lost,
         "missing_pct": (lost / total) if total else 0.0,
-        "longest_seconds": longest / 25.0,
+        "longest_seconds": longest / analysis.fps,
         "unstable": unstable,
         "duplicates": duplicates,
         "dead": int((frames & (analysis.labels == DEAD)).sum()),
@@ -186,7 +186,7 @@ def _supported_plan(analysis: Analysis, route: Route) -> Plan:
     Measured over the claim's own frames, not the match's: a plan about the final third that
     quotes the match's coverage is the same category error the facts exist to avoid.
     """
-    from .facts import FACT_LIBRARY, _scoped_frames
+    from .facts import _scoped_frames
     from .tactics import tactics_scope
 
     frames = _scoped_frames(analysis, route.window, route.zone, route.phase)

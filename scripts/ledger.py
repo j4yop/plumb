@@ -36,8 +36,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from mtah.config import AWAY, DEAD, HOME, Config  # noqa: E402
-from mtah.decide import assign_owners, build_spells  # noqa: E402
-from mtah.evidence import build_evidence  # noqa: E402
+from mtah.pipeline import decide  # noqa: E402
 
 from plumb.analysis import Analysis  # noqa: E402
 from plumb.facts import FACT_LIBRARY  # noqa: E402
@@ -45,9 +44,7 @@ from plumb.facts import FACT_LIBRARY  # noqa: E402
 
 def analysis_for(match, config: Config) -> Analysis:
     """Run the possession engine on any Match and hand back a claims-engine Analysis."""
-    evidence = build_evidence(match, config)
-    owners, episodes = assign_owners(evidence, config)
-    decision = build_spells(owners, evidence, config, episodes=episodes)
+    evidence, decision = decide(match, config)
     return Analysis(
         labels=decision.labels,
         spells=decision.spells,

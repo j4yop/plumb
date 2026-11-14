@@ -250,7 +250,13 @@ def render_coverage(analysis: Analysis, window: str, style: Style,
     return render_fact(fact, style, extra_lines=extra)
 
 
-def _ask(analysis: Analysis, question: str, style: Style, as_json: bool) -> int:
+def _answer(analysis: Analysis, question: str, style: Style, as_json: bool) -> int:
+    """Answer a question, or refuse it.
+
+    ``ask`` and ``why`` are the same operation with different intent from the user's side: one
+    asks for the answer, the other asks what it rests on. The output is identical, so the code is
+    one function rather than two that could drift apart.
+    """
     route_ = route(question)
 
     if route_.kind == "fact":
@@ -269,30 +275,6 @@ def _ask(analysis: Analysis, question: str, style: Style, as_json: bool) -> int:
             print(render_refusal(refusal, style))
         return 0
 
-    if as_json:
-        print(json.dumps({"status": "no_route", "question": question}, indent=2))
-    else:
-        print(render_unknown(route_, style))
-    return 0
-
-
-def _why(analysis: Analysis, question: str, style: Style, as_json: bool) -> int:
-    """Why the answer holds — or why it cannot."""
-    route_ = route(question)
-    if route_.kind == "fact":
-        fact = FACT_LIBRARY[route_.id](analysis, route_.window, route_.zone, route_.phase)
-        if as_json:
-            print(json.dumps({"status": "supported", "question": question, **fact.to_dict()}, indent=2))
-        else:
-            print(render_fact(fact, style))
-        return 0
-    if route_.kind == "refusal":
-        refusal = route_.detail
-        if as_json:
-            print(json.dumps({"status": "refused", "question": question, **refusal.to_dict()}, indent=2))
-        else:
-            print(render_refusal(refusal, style))
-        return 0
     if as_json:
         print(json.dumps({"status": "no_route", "question": question}, indent=2))
     else:
@@ -403,15 +385,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     config = Config(source=args.source, data_dir=args.data_dir or "")
 
     if args.command == "run":
-        from mtah.decide import assign_owners, build_spells
         from mtah.emit import validate_file, write_submission
-        from mtah.evidence import build_evidence
-        from mtah.match import load_match
+        from mtah.pipeline import run as run_pipeline
 
-        match = load_match(config)
-        evidence = build_evidence(match, config)
-        owners, episodes = assign_owners(evidence, config)
-        decision = build_spells(owners, evidence, config, episodes=episodes)
+        match, _evidence, decision = run_pipeline(config)
         write_submission(args.out, decision.labels)
         problems = validate_file(args.out, match.n_frames)
         if problems:
@@ -424,9 +401,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     analysis = analyse(config, use_cache=not args.no_cache)
 
     if args.command == "ask":
-        return _ask(analysis, _scoped_question(args, args.question), style, args.as_json)
+        return _answer(analysis, _scoped_question(args, args.question), style, args.as_json)
     if args.command == "why":
-        return _why(analysis, _scoped_question(args, args.question), style, args.as_json)
+        return _answer(analysis, _scoped_question(args, args.question), style, args.as_json)
     if args.command == "close-gap":
         return _close_gap(analysis, _scoped_question(args, args.question), style, args.as_json)
     if args.command == "coverage":

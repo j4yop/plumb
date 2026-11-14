@@ -84,27 +84,24 @@
   ──────────────────────────────────────────────────────────────
     over the 72,560 frames covered by 140 mirror pairs our labels agree with the organisers' own annotation on 70.3%; over the frames where we name a team, 77.6%.
 
-    over every frame              70.3% of 72,560 (140 pairs)
-    where we name a team          77.6% of 65,724
-    build up                      83.2% over 10,677 frames
-    progression                   85.7% over 30,507 frames
-    creating chances              64.4% over 15,616 frames
-    long ball                     69.1% over 9,190 frames
-    attacking transition          66.2% over 8,924 frames
-    ball in final third           68.7% over 54,561 frames
-    ball in the box               63.1% over 26,795 frames
-    players in the box            58.5% over 54,684 frames
-    defending in middle third     85.7% over 30,507 frames
-    defending in defensive third  64.4% over 15,616 frames
-    defending in attacking third  83.2% over 10,677 frames
-    defensive transition          66.2% over 8,924 frames
-    set pieces                    58.4% over 18,469 frames
-    goals                         79.2% over 3,258 frames
+    over every frame      70.3% of 72,560 (140 pairs)
+    where we name a team  77.6% of 65,724
+    independent codes     10 (four more are complements)
+    build up              83.2% over 10,677 frames
+    progression           85.7% over 30,507 frames
+    creating chances      64.4% over 15,616 frames
+    long ball             69.1% over 9,190 frames
+    attacking transition  66.2% over 8,924 frames
+    ball in final third   68.7% over 54,561 frames
+    ball in the box       63.1% over 26,795 frames
+    players in the box    58.5% over 54,684 frames
+    set pieces            58.4% over 18,469 frames
+    goals                 79.2% over 3,258 frames
 
-    scope                         the whole match
-    coverage                      the annotation is provided data; it is not possession ground truth, and no possession labels were used to build it
-    confidence                    a mirror pair is an attacking code and a defending code over the same window with opposite teams, so the team in possession over that window is stated by the organisers
-    evidence                      638 instances across 14 codes
+    scope                 the whole match
+    coverage              the annotation is provided data; it is not possession ground truth, and no possession labels were used to build it
+    confidence            a mirror pair is an attacking code and a defending code over the same window with opposite teams, so the team in possession over that window is stated by the organisers
+    evidence              638 instances across 14 codes
 
   computed by deterministic code from the raw tracking; no model wrote this claim
 
@@ -116,7 +113,7 @@
   end of demo. 5 beats, 47 lines of evidence.
 
   recorded from
-    commit      4734883
+    commit      bc8b509
     data        MANIFEST.sha256, sha256 c8b857e7d2b3ef59
 
 # recorded from the committed code path; no hand editing

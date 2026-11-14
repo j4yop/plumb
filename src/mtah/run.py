@@ -18,9 +18,8 @@ from typing import Dict
 import numpy as np
 
 from .config import ABSENCE_NAMES, Config, LABEL_NAMES
-from .decide import assign_owners, build_spells
+from .pipeline import decision_from, evidence_for
 from .emit import validate_file, write_submission
-from .evidence import build_evidence
 from .match import load_match
 from .report import summarise
 from .teams import assign_teams
@@ -80,7 +79,7 @@ def main(argv=None) -> int:
         teams = assign_teams(match.player_xy, match.slot_team, k=config.neighbour_votes)
         changed = int(np.sum(teams != np.broadcast_to(match.slot_team, teams.shape)))
         print("    {} slot-frames changed team from the metadata".format(changed))
-    evidence = build_evidence(match, config, teams=teams)
+    evidence = evidence_for(match, config, teams=teams)
     print(
         "    ball observed on {:.2f}% of frames ({:.2f}% of graded)".format(
             100.0 * evidence.ball_present.mean(),
@@ -93,10 +92,9 @@ def main(argv=None) -> int:
             print("    {:<12} {:>8}".format(ABSENCE_NAMES[index], count))
 
     print("[2] assigning possession ...")
-    owners, episodes = assign_owners(evidence, config)
-
     print("[3] building spells ...")
-    decision = build_spells(owners, evidence, config, episodes=episodes)
+    decision = decision_from(evidence, config)
+    owners, episodes = decision.owners, decision.episodes
     print("    {} control episodes (mean {:.1f} s)".format(
         len(episodes),
         float(np.mean([(stop - start) for start, stop, _ in episodes])) / 25.0 if episodes else 0.0))

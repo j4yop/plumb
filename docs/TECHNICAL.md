@@ -376,7 +376,7 @@ pip install -r requirements.txt
 export MTAH_DATA_DIR=/path/to/the/unpacked/bundle
 make reproduce        # artifacts/submission.csv
 make validate         # the official checks
-make test             # 174 tests
+make test             # 176 tests
 ```
 
 The repository contains the code, the pinned dependencies and the documentation. It does **not**

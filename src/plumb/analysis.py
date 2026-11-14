@@ -17,9 +17,10 @@ from typing import List, Tuple
 import numpy as np
 
 from mtah.config import Config
-from mtah.decide import assign_owners, build_spells
-from mtah.evidence import Evidence, build_evidence
-from mtah.match import Match, load_match
+from mtah.decide import _runs
+from mtah.evidence import Evidence
+from mtah.match import load_match
+from mtah.pipeline import decide
 
 CACHE_VERSION = 4
 
@@ -41,6 +42,9 @@ class Analysis:
     phases: List = None  # the full Smart Tagging annotation (mtah.match.Phase records)
     pitch_length_m: float = 105.3
     pitch_width_m: float = 68.0
+    fps: float = 25.0
+    penalty_area_depth_m: float = 16.5
+    penalty_area_half_width_m: float = 20.3
     team_names: Tuple[str, str] = ("Barcelona", "Atletic Club")
     phase_windows: dict = None  # the match's own half boundaries, from its own data
 
@@ -99,6 +103,16 @@ class Analysis:
         return (int(indices[0]), int(indices[-1])) if indices.size else (0, self.n_frames - 1)
 
 
+def _near_team(d_home: np.ndarray, d_away: np.ndarray) -> np.ndarray:
+    """Which team's player is nearest the ball, from the two distances — the same rule as
+    :func:`mtah.evidence.build_evidence`."""
+    near = np.full(d_home.shape[0], -1, dtype=np.int8)
+    both = np.isfinite(np.minimum(d_home, d_away))
+    near[both & (d_home <= d_away)] = 0
+    near[both & (d_away < d_home)] = 1
+    return near
+
+
 def _phase_windows(config: Config, n_frames: int) -> dict:
     """The match's own half boundaries, as ``Analysis`` wants them."""
     return {
@@ -148,9 +162,7 @@ def analyse(config: Config, use_cache: bool = True) -> Analysis:
             return cached
 
     match = load_match(config)
-    evidence = build_evidence(match, config)
-    owners, episodes = assign_owners(evidence, config)
-    decision = build_spells(owners, evidence, config, episodes=episodes)
+    evidence, decision = decide(match, config)
 
     analysis = Analysis(
         labels=decision.labels,
@@ -167,6 +179,9 @@ def analyse(config: Config, use_cache: bool = True) -> Analysis:
         pitch_width_m=config.pitch_width_m,
         team_names=tuple(match.team_names),
         phase_windows=_phase_windows(config, match.n_frames),
+        fps=config.fps,
+        penalty_area_depth_m=config.penalty_area_depth_m,
+        penalty_area_half_width_m=config.penalty_area_half_width_m,
     )
     _save_cache(path, analysis)
     return analysis
@@ -216,6 +231,7 @@ def _save_cache(path: str, analysis: Analysis) -> None:
             set_piece=evidence.set_piece,
             d_home=evidence.d_home,
             d_away=evidence.d_away,
+            ball_out_of_play=evidence.ball_out_of_play,
             activity=evidence.activity,
             moving_players=evidence.moving_players,
             absence_class=evidence.absence_class,
@@ -239,10 +255,13 @@ def _load_cache(path: str, config: Config) -> Analysis:
         n_frames=int(labels.shape[0]),
         ball_present=data["ball_present"],
         ball_speed=np.full(labels.shape[0], np.nan, dtype=np.float32),
-        ball_out_of_play=np.zeros(labels.shape[0], dtype=bool),
+        # Stored, not invented: a fabricated all-False array would answer "was the ball out of
+        # play?" differently from a fresh run, and the cache is meant to be transparent.
+        ball_out_of_play=data["ball_out_of_play"],
         d_home=data["d_home"],
         d_away=data["d_away"],
-        near_team=np.full(labels.shape[0], -1, dtype=np.int8),
+        # Derived exactly as build_evidence derives it, rather than a placeholder.
+        near_team=_near_team(data["d_home"], data["d_away"]),
         near_dist=np.minimum(data["d_home"], data["d_away"]),
         players_home=data["players_home"],
         players_away=data["players_away"],
@@ -254,8 +273,6 @@ def _load_cache(path: str, config: Config) -> Analysis:
         absence_class=data["absence_class"],
         set_piece=data["set_piece"],
     )
-    from mtah.decide import _runs  # local import: internal helper
-
     starts = data["set_piece_start"]
     stops = data["set_piece_stop"]
     kinds = data["set_piece_kind"]
@@ -306,4 +323,7 @@ def _load_cache(path: str, config: Config) -> Analysis:
         pitch_width_m=config.pitch_width_m,
         team_names=tuple(str(n) for n in data["team_names"]),
         phase_windows=_phase_windows(config, int(labels.shape[0])),
+        fps=config.fps,
+        penalty_area_depth_m=config.penalty_area_depth_m,
+        penalty_area_half_width_m=config.penalty_area_half_width_m,
     )

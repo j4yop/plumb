@@ -56,8 +56,7 @@ import numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
 
 from mtah.config import AWAY, DEAD, HOME, Config
-from mtah.decide import assign_owners, build_spells
-from mtah.evidence import build_evidence
+from mtah.pipeline import decide
 from mtah.match import Match
 
 # --------------------------------------------------------------------------------------------------
@@ -412,9 +411,7 @@ def frame_accuracy(truth: np.ndarray, predicted: np.ndarray) -> float:
 
 
 def run_configuration(match: Match, truth: np.ndarray, config: Config) -> Dict[str, float]:
-    evidence = build_evidence(match, config)
-    owners, episodes = assign_owners(evidence, config)
-    decision = build_spells(owners, evidence, config, episodes=episodes)
+    evidence, decision = decide(match, config)
     predicted = np.where(decision.labels == 0, 0, np.where(decision.labels == 1, 1, -1))
     return {
         "spell_f1": spell_f1(truth, predicted),

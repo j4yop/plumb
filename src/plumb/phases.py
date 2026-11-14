@@ -70,6 +70,23 @@ OTHER_CODES = ("GOALS",)
 
 ALL_CODES = ATTACKING_CODES + DEFENDING_CODES + RESTART_CODES + OTHER_CODES
 
+# Four defending codes are scored as "the other team" over the same windows as four attacking
+# codes. They are therefore the same measurement seen from both ends, not independent checks:
+# PROGRESSION and DEFENDING IN MIDDLE THIRD cover identical windows and must agree. Reporting
+# all fourteen as fourteen confirmations would overstate the evidence fourfold.
+COMPLEMENTS: Dict[str, str] = {
+    "BUILD UP": "DEFENDING IN ATTACKING THIRD",
+    "PROGRESSION": "DEFENDING IN MIDDLE THIRD",
+    "CREATING CHANCES": "DEFENDING IN DEFENSIVE THIRD",
+    "ATTACKING TRANSITION": "DEFENSIVE TRANSITION",
+}
+
+
+def independent_codes() -> Tuple[str, ...]:
+    """The codes that measure something the others do not."""
+    redundant = set(COMPLEMENTS.values())
+    return tuple(code for code in ALL_CODES if code not in redundant)
+
 # The codes that mark a restart, and the type of each.
 RESTART_TYPES = (
     "Throw-in",
@@ -79,16 +96,6 @@ RESTART_TYPES = (
     "Kick Off (Start)",
     "Kick Off (After Goal)",
 )
-
-# A code and its mirror, when the organisers tag both halves of the same moment.
-MIRRORS: Dict[str, str] = {
-    "BUILD UP": "DEFENDING IN ATTACKING THIRD",
-    "PROGRESSION": "DEFENDING IN MIDDLE THIRD",
-    "CREATING CHANCES": "DEFENDING IN DEFENSIVE THIRD",
-    "ATTACKING TRANSITION": "DEFENSIVE TRANSITION",
-    "LONG BALL": "DEFENSIVE TRANSITION",
-}
-
 
 def by_code(phases: List[Phase], code: str) -> List[Phase]:
     return [p for p in phases if p.code == code]

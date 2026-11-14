@@ -55,6 +55,15 @@ class Config:
     # DATA.md); the ATD metadata itself reports 105 x 68. The 30 cm only affects distances.
     pitch_length_m: float = 105.3
     pitch_width_m: float = 68.0
+    # The frame rate. Every second-to-frame conversion in the system reads this, so a change of
+    # rate is one edit rather than a search.
+    fps: float = 25.0
+    # The penalty area, in metres. It is 16.5 m deep and 40.32 m wide (20.16 m either side of the
+    # centre line); the half-width here is 20.3 m, which is the real area plus 14 cm of slack for
+    # the tracker. It appears in the zone mask, the box count and four tactical claims, and it
+    # used to be typed out in each of them.
+    penalty_area_depth_m: float = 16.5
+    penalty_area_half_width_m: float = 20.3
 
     # --- published match structure --------------------------------------------------------------
     # From the organisers' documentation (DATA.md / FAQ.md). These are the boundaries of the two
@@ -137,6 +146,8 @@ class Config:
     out_of_play_slack_m: float = 2.0
     # A set-piece window is used as a prior when the activity evidence is ambiguous.
     set_piece_window_slack_frames: int = 0
+    # Frames per minute, for any per-minute rate the report or the facts compute.
+    frames_per_minute: float = 1500.0
 
     # --- hand-over during an occlusion -------------------------------------------------------------
     # When the ball is untracked during live play, the team whose players close in on its last

@@ -372,6 +372,48 @@ def test_the_ledger_reports_the_status(analysis):
 # --------------------------------------------------------------------------------------------------
 
 
+def test_there_is_one_pipeline():
+    """The three stages used to be pasted into seven call sites."""
+    from mtah import pipeline
+
+    assert callable(pipeline.run)
+    assert callable(pipeline.decide)
+    assert callable(pipeline.evidence_for)
+    assert callable(pipeline.decision_from)
+
+    # No module outside the pipeline constructs the pipeline by hand.
+    import glob
+    import os
+
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    offenders = []
+    for path in glob.glob(os.path.join(root, "src", "**", "*.py"), recursive=True) + \
+            glob.glob(os.path.join(root, "scripts", "*.py")):
+        if path.endswith("pipeline.py"):
+            continue
+        with open(path) as handle:
+            text = handle.read()
+        if "build_evidence(" in text and "assign_owners(" in text:
+            offenders.append(os.path.relpath(path, root))
+    assert not offenders, "these re-implement the pipeline: {}".format(offenders)
+
+
+def test_a_configurable_threshold_reaches_every_caller():
+    """fps and the penalty area were typed out at nine and four sites."""
+    from mtah.config import Config
+
+    config = Config()
+    assert config.fps == 25.0
+    assert config.penalty_area_depth_m == 16.5
+    assert config.penalty_area_half_width_m >= 20.16
+    # ...and the analysis carries them, so the claims engine reads one definition.
+    from plumb.analysis import Analysis
+    import dataclasses
+
+    fields = {f.name for f in dataclasses.fields(Analysis)}
+    assert {"fps", "penalty_area_depth_m", "penalty_area_half_width_m"} <= fields
+
+
 def test_the_cache_is_per_match_and_per_configuration():
     """One cache file for the tool answered the broadcast question with the tactical numbers."""
     from plumb.analysis import _cache_path
@@ -430,7 +472,7 @@ def test_the_cli_calls_an_unavailable_claim_unavailable(analysis):
 
 def test_the_cli_prints_a_scope_for_every_fact(capsys, analysis):
     for fact_id in FACT_LIBRARY:
-        cli._ask(analysis, "who had more possession", cli.Style(enabled=False), False)
+        cli._answer(analysis, "who had more possession", cli.Style(enabled=False), False)
     out = capsys.readouterr().out
     assert "scope" in out
 
@@ -446,7 +488,7 @@ def test_the_cli_refuses_and_plans(capsys, analysis):
 def test_the_json_output_is_valid(capsys, analysis):
     import json
 
-    cli._ask(analysis, "who had more possession", cli.Style(enabled=False), True)
+    cli._answer(analysis, "who had more possession", cli.Style(enabled=False), True)
     payload = json.loads(capsys.readouterr().out)
     assert payload["status"] == "supported"
     assert "coverage" in payload
