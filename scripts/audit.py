@@ -365,6 +365,7 @@ def _no_video_claim():
     text = _read_docs().lower()
     banned = ["watched the video", "checked against the video", "verified on the video",
               "confirmed with the video", "project the tracking onto a frame",
+              "projecting the tracking onto a frame", "see what the model saw",
               "used the video to check"]
     hits = []
     for phrase in banned:

@@ -90,7 +90,7 @@ graded frames.
 | `BAR-ATH_tactical_atd.txt` | **the whole decision path** | one record per video frame, players and the ball, positions and speeds |
 | `BAR-ATH_tactical_atd.xml` | team names and the slot→team map | read from the metadata, never hard-coded, so the sides cannot be inverted silently |
 | `BAR-ATH_tactical_smart_tagging.xml` | **validation only** — 638 instances, 14 codes, 59 set pieces | the only organiser-provided supervision that covers the whole match (see §5) |
-| `BAR-ATH_tactical_homography.csv` | **debugging only** | 100 % valid, and the right tool for projecting the tracking onto a frame to see what the model saw; it carries no information the tracking does not already have for this question |
+| `BAR-ATH_tactical_homography.csv` | **debugging only** | 100 % valid. It converts the provider's normalised coordinates to metres; it carries no information the tracking does not already have for this question. It is **not** used to check the output against the video, which the rules forbid |
 | `BAR-ATH_tactical.mp4` | **inspection only** | a fixed wide tactical camera; players are twenty pixels tall, so it cannot answer a question the tracking cannot |
 | `BAR-ATH_broadcast_*` | **dropped** | 65.81 % of its homography is valid, it has cuts and replays, its frame count differs from its tracking by one, and it is not aligned to the submission's timeline |
 

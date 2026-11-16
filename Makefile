@@ -17,7 +17,7 @@ FRAMES     ?= 199319
 export PYTHONPATH := src
 
 .PHONY: all install install-dev reproduce validate test report clean help ask coverage ledger \
-        external stability dead-onset demo ledger slides audit ledger-set
+        external stability dead-onset demo ledger slides audit ledger-set techdoc
 
 all: test validate
 
@@ -39,6 +39,7 @@ help:
 	@echo "ledger-set   the ledger over a set of matches (the ten-match artefact)"
 	@echo "slides       generate the deck from the live analysis (docs/slides.html)"
 	@echo "audit        check the repository, the submission and the prose against each other"
+	@echo "techdoc      build the PDF for the submission form (artifacts/*.pdf)"
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -91,6 +92,9 @@ slides:
 
 audit:
 	$(PYTHON) scripts/audit.py
+
+techdoc:
+	$(PYTHON) scripts/techdoc.py
 
 clean:
 	rm -rf artifacts .pytest_cache
