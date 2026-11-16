@@ -381,9 +381,11 @@ def _no_video_claim():
 @check("the README's headline score matches the scorer")
 def _score():
     scorer = os.environ.get("MTAH_SCORER")
-    if not scorer or not os.path.isdir(scorer):
+    script = os.path.join(scorer, "evaluation", "run_evaluation.py") if scorer else ""
+    if not script or not os.path.isfile(script):
         CHECKS.append(Check("the README's headline score matches the scorer", SKIP,
-                            "set MTAH_SCORER to the organisers' evaluation folder"))
+                            "set MTAH_SCORER to a copy of the organisers' repository, which "
+                            "contains evaluation/run_evaluation.py"))
         return True, ""
     results = os.path.join(scorer, "evaluation", "results")
     os.makedirs(results, exist_ok=True)
